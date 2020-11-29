@@ -37,6 +37,9 @@ except:
         def update(self):
             pass
 
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path
+from pathlib import Path
+
 
 # exclude extremly large displacements
 MAX_FLOW = 400
@@ -134,12 +137,19 @@ class Logger:
 
 
 def train(args):
-
+    
     model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
     print("Parameter Count: %d" % count_parameters(model))
 
+    total_steps = 0
+    
     if args.restore_ckpt is not None:
-        model.load_state_dict(torch.load(args.restore_ckpt), strict=False)
+        path = checkpoint_load_path(args.restore_ckpt)
+        if Path(path).exists():
+            checkpoint = torch.load(path)
+            model.load_state_dict(checkpoint['model_state'], strict=False)
+            total_steps = checkpoint['total_steps']
+            print('Continue from', total_steps, 'step')
 
     model.cuda()
     model.train()
@@ -150,16 +160,17 @@ def train(args):
     train_loader = datasets.fetch_dataloader(args)
     optimizer, scheduler = fetch_optimizer(args, model)
 
-    total_steps = 0
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
 
+    SAVE_FREQ = 5
     VAL_FREQ = 5000
     add_noise = True
 
     should_keep_training = True
     while should_keep_training:
 
+        print('Start training')
         for i_batch, data_blob in enumerate(train_loader):
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
@@ -183,9 +194,6 @@ def train(args):
             logger.push(metrics)
 
             if total_steps % VAL_FREQ == VAL_FREQ - 1:
-                PATH = 'checkpoints/%d_%s.pth' % (total_steps+1, args.name)
-                torch.save(model.state_dict(), PATH)
-
                 results = {}
                 for val_dataset in args.validation:
                     if val_dataset == 'chairs':
@@ -201,6 +209,18 @@ def train(args):
                 if args.stage != 'chairs':
                     model.module.freeze_bn()
             
+            if total_steps % SAVE_FREQ == SAVE_FREQ - 1:
+                PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
+                save_dict = {
+                    'model_state': model.state_dict(),
+                    'total_steps': total_steps
+                } 
+                torch.save(save_dict, PATH)
+                checkpoint_save_path(PATH, save_json=True)
+            
+            if total_steps > 10:
+                return
+            
             total_steps += 1
 
             if total_steps > args.num_steps:
@@ -208,10 +228,6 @@ def train(args):
                 break
 
     logger.close()
-    PATH = 'checkpoints/%s.pth' % args.name
-    torch.save(model.state_dict(), PATH)
-
-    return PATH
 
 
 if __name__ == '__main__':
