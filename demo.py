@@ -42,10 +42,10 @@ def viz(img, flo):
 
 def demo(args):
     model = torch.nn.DataParallel(RAFT(args))
-    load_model_txt(model, 'checkpoints/raft-things.pth')
-    #model.load_state_dict(torch.load(args.model,  map_location=torch.device('cpu')))
+    #load_model_txt(model, 'checkpoints/raft-things.pth')
+    model.load_state_dict(torch.load(args.model,  map_location=torch.device('cpu')))
 
-    #model = model.module
+    model = model.module
     model.to(DEVICE)
     model.eval()
 
