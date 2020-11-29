@@ -26,7 +26,7 @@ try:
 except:
     # dummy GradScaler for PyTorch < 1.6
     class GradScaler:
-        def __init__(self):
+        def __init__(self, **kwargs):
             pass
         def scale(self, loss):
             return loss
