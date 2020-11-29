@@ -63,3 +63,28 @@ def checkpoint_save_path(path, save_json=False):
         return path
     else:
         return path + '.back'
+
+
+def save_model_crossplatform(model, path):
+    fout = open(path, 'w')
+    for k, v in model.state_dict().items():
+        fout.write(str(k) + '\n')
+        fout.write(str(v.tolist()) + '\n')
+    fout.close()
+
+def load_model_crossplatform(path):
+    data_dict = {}
+    fin = open(path, 'r')
+    odd = 1
+    prev_key = None
+    while True:
+        s = fin.readline().strip()
+        if not s:
+            break
+        if odd:
+            data_dict[s] = 0
+            prev_key = s
+        else:
+            data_dict[prev_key] = torch.FloatTensor(eval(s))
+        odd = (odd + 1) % 2
+    return data_dict

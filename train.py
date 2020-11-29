@@ -37,7 +37,7 @@ except:
         def update(self):
             pass
 
-from utils.checkpoints import checkpoint_load_path, checkpoint_save_path
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_crossplatform, load_model_crossplatform
 from pathlib import Path
 
 
@@ -135,7 +135,6 @@ class Logger:
     def close(self):
         self.writer.close()
 
-
 def train(args):
     
     model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
@@ -146,10 +145,30 @@ def train(args):
     if args.restore_ckpt is not None:
         path = checkpoint_load_path(args.restore_ckpt)
         if Path(path).exists():
-            checkpoint = torch.load(path)
-            model.load_state_dict(checkpoint['model_state'], strict=False)
-            total_steps = checkpoint['total_steps']
-            print('Continue from', total_steps, 'step')
+            if 0:
+                checkpoint = torch.load(path)
+                model.load_state_dict(checkpoint['model_state'], strict=False)
+                total_steps = checkpoint['total_steps']
+                print('Continue from', total_steps, 'step')
+            else:
+                own_state = model.state_dict()
+                model_state = load_model_crossplatform(path)
+                for k, v in model_state.items():
+                    if not k in own_state:
+                        print('Parameter', k, 'not found in own_state!!!')
+                    else:
+                        own_state[k].copy_(v)
+                print('Model loaded')
+
+    #save_model_crossplatform(model, 'things.txt')
+    #i = 0
+    #print(model.state_dict())
+    #for k, v in model.state_dict().items():
+    #    print('KEY', k, 'VALUE', v.tolist())
+    #    print('TYPES', type(k), type(v), v.type())
+    #    i += 1
+    #    if i == 1:
+    #        break
 
     model.cuda()
     model.train()
