@@ -150,10 +150,12 @@ def train(args):
                 model.load_state_dict(checkpoint, strict=False)
             if 1:
                 checkpoint = torch.load(path)
-                model.load_state_dict(checkpoint['model_state'], strict=False)
-                if 'total_steps' in checkpoint:
+                if 'model_state' in checkpoint: # New format with total_steps number
+                    model.load_state_dict(checkpoint['model_state'], strict=False)
                     total_steps = checkpoint['total_steps']
                     print('Continue from', total_steps, 'step')
+                else: # Standard format
+                    model.load_state_dict(checkpoint, strict=False)
             if 0:
                 load_model_txt(model, path)
                 PATH = checkpoint_save_path('checkpoints/01.pth')
