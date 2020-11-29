@@ -138,7 +138,7 @@ class Logger:
 def train(args):
     
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
-    model = RAFT(args)
+    model = nn.DataParallel(RAFT(args))
     print("Parameter Count: %d" % count_parameters(model))
 
     total_steps = 0
