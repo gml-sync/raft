@@ -13,7 +13,7 @@ from raft import RAFT
 from utils import flow_viz
 from utils.utils import InputPadder
 
-from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_crossplatform, load_model_crossplatform
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt
 
 
 DEVICE = 'cpu'
@@ -42,7 +42,7 @@ def viz(img, flo):
 
 def demo(args):
     model = torch.nn.DataParallel(RAFT(args))
-    load_model_crossplatform(model, 'checkpoints/raft-things.pth')
+    load_model_txt(model, 'checkpoints/raft-things.pth')
     #model.load_state_dict(torch.load(args.model,  map_location=torch.device('cpu')))
 
     #model = model.module

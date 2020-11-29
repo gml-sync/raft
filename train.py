@@ -37,7 +37,7 @@ except:
         def update(self):
             pass
 
-from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_crossplatform, load_model_crossplatform, convert_to_crossplatform
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt, convert_to_txt
 from pathlib import Path
 
 
@@ -154,7 +154,10 @@ def train(args):
                 total_steps = checkpoint['total_steps']
                 print('Continue from', total_steps, 'step')
             if 1:
-                load_model_crossplatform(model, path)
+                load_model_txt(model, path)
+                PATH = checkpoint_save_path('checkpoints/01.pth')
+                torch.save(model.state_dict(), PATH)
+
 
     model.cuda()
     model.train()

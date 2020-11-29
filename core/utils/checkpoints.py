@@ -66,14 +66,14 @@ def checkpoint_save_path(path, save_json=False):
         return path + '.back'
 
 
-def save_model_crossplatform(model, path):
+def save_model_txt(model, path):
     fout = open(path, 'w')
     for k, v in model.state_dict().items():
         fout.write(str(k) + '\n')
         fout.write(str(v.tolist()) + '\n')
     fout.close()
 
-def load_model_crossplatform(model, path):
+def load_model_txt(model, path):
     data_dict = {}
     fin = open(path, 'r')
     i = 0
@@ -114,7 +114,7 @@ def load_model_crossplatform(model, path):
                 sys.exit(0)
     print('Model loaded')
 
-def convert_to_crossplatform(model, model_path, save_path):
+def convert_to_txt(model, model_path, save_path):
     checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint, strict=False)
-    save_model_crossplatform(model, save_path)
+    save_model_txt(model, save_path)
