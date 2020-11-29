@@ -73,12 +73,14 @@ def save_model_crossplatform(model, path):
         fout.write(str(v.tolist()) + '\n')
     fout.close()
 
-def load_model_crossplatform(path):
+def load_model_crossplatform(model, path):
     data_dict = {}
     fin = open(path, 'r')
+    i = 0
     odd = 1
     prev_key = None
     while True:
+        print('Iter', i)
         s = fin.readline().strip()
         if not s:
             break
@@ -86,6 +88,33 @@ def load_model_crossplatform(path):
             data_dict[s] = 0
             prev_key = s
         else:
-            data_dict[prev_key] = torch.FloatTensor(eval(s))
+            val = eval(s)
+            if type(val) != type([]):
+                data_dict[prev_key] = torch.FloatTensor([eval(s)])[0]
+            else:
+                data_dict[prev_key] = torch.FloatTensor(eval(s))
         odd = (odd + 1) % 2
-    return data_dict
+        i += 1
+
+    # Replace existing values with loaded
+
+    print('Loading...')
+    own_state = model.state_dict()
+    print('Items:', len(own_state.items()))
+    for k, v in data_dict.items():
+        if not k in own_state:
+            print('Parameter', k, 'not found in own_state!!!')
+        else:
+            try:
+                own_state[k].copy_(v)
+            except:
+                print('Key:', k)
+                print('Old:', own_state[k])
+                print('New:', v)
+                sys.exit(0)
+    print('Model loaded')
+
+def convert_to_crossplatform(model, model_path, save_path):
+    checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+    model.load_state_dict(checkpoint, strict=False)
+    save_model_crossplatform(model, save_path)

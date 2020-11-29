@@ -37,7 +37,7 @@ except:
         def update(self):
             pass
 
-from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_crossplatform, load_model_crossplatform
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_crossplatform, load_model_crossplatform, convert_to_crossplatform
 from pathlib import Path
 
 
@@ -146,29 +146,15 @@ def train(args):
         path = checkpoint_load_path(args.restore_ckpt)
         if Path(path).exists():
             if 0:
+                checkpoint = torch.load(path, map_location=torch.device('cpu'))
+                model.load_state_dict(checkpoint, strict=False)
+            if 0:
                 checkpoint = torch.load(path)
                 model.load_state_dict(checkpoint['model_state'], strict=False)
                 total_steps = checkpoint['total_steps']
                 print('Continue from', total_steps, 'step')
-            else:
-                own_state = model.state_dict()
-                model_state = load_model_crossplatform(path)
-                for k, v in model_state.items():
-                    if not k in own_state:
-                        print('Parameter', k, 'not found in own_state!!!')
-                    else:
-                        own_state[k].copy_(v)
-                print('Model loaded')
-
-    #save_model_crossplatform(model, 'things.txt')
-    #i = 0
-    #print(model.state_dict())
-    #for k, v in model.state_dict().items():
-    #    print('KEY', k, 'VALUE', v.tolist())
-    #    print('TYPES', type(k), type(v), v.type())
-    #    i += 1
-    #    if i == 1:
-    #        break
+            if 1:
+                load_model_crossplatform(model, path)
 
     model.cuda()
     model.train()
@@ -250,6 +236,14 @@ def train(args):
 
 
 if __name__ == '__main__':
+    #a = torch.Tensor([1])
+    #a[0] = 3
+    #print(a[0])
+    #print(a[0].dim())
+    #b = torch.Tensor(3,1)
+    #print(b[0])
+    #print(b[0].dim())
+    #sys.exit(0)
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='raft', help="name your experiment")
     parser.add_argument('--stage', help="determines which dataset to use for training") 
