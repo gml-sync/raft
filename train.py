@@ -188,9 +188,6 @@ def train(args):
     logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
 
-    for i in range(10):
-        logger.push({'epe': i})
-
 
     PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
     checkpoint = {
