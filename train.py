@@ -39,7 +39,7 @@ except:
 
 from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt, convert_to_txt
 from pathlib import Path
-
+from numpy import np
 
 # exclude extremly large displacements
 MAX_FLOW = 400
@@ -186,6 +186,10 @@ def train(args):
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
     print('Logger initialized!')
+
+    writer = SummaryWriter()
+    writer.add_scalar('Loss/train', np.random.random(), 20)
+    writer.close()
 
     SAVE_FREQ = 5
     VAL_FREQ = 5000
