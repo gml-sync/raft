@@ -92,13 +92,14 @@ def fetch_optimizer(args, model):
     
 
 class Logger:
-    def __init__(self, model, scheduler, optimizer):
+    def __init__(self, model, scheduler, optimizer, path='runs/logbook', total_steps=0):
         self.model = model
         self.scheduler = scheduler
         self.optimizer = optimizer
-        self.total_steps = 0
+        self.total_steps = total_steps
         self.running_loss = {}
         self.writer = None
+        self.writer_path = path
 
     def _print_training_status(self):
         metrics_data = [self.running_loss[k]/SUM_FREQ for k in sorted(self.running_loss.keys())]
@@ -111,7 +112,7 @@ class Logger:
         print(training_str + metrics_str)
 
         if self.writer is None:
-            self.writer = SummaryWriter()
+            self.writer = SummaryWriter(self.writer_path)
 
         for k in self.running_loss:
             self.writer.add_scalar(k, self.running_loss[k]/SUM_FREQ, self.total_steps)
@@ -132,7 +133,7 @@ class Logger:
 
     def write_dict(self, results):
         if self.writer is None:
-            self.writer = SummaryWriter()
+            self.writer = SummaryWriter(self.writer_path)
 
         for key in results:
             self.writer.add_scalar(key, results[key], self.total_steps)
@@ -164,7 +165,6 @@ def train(args):
                     model = checkpoint['model']
                     optimizer = checkpoint['optimizer']
                     scheduler = checkpoint['scheduler']
-                    logger = checkpoint['logger']
                     is_model_loaded = True
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
@@ -175,36 +175,30 @@ def train(args):
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
 
-    model.cuda()
-    model.train()
-    train_loader = datasets.fetch_dataloader(args)
-
     if not is_model_loaded:
         total_steps = 0
         optimizer, scheduler = fetch_optimizer(args, model)
-        logger = Logger(model, scheduler, optimizer)
 
         if args.stage != 'chairs':
             model.module.freeze_bn()
+
+    model.cuda()
+    model.train()
+    train_loader = datasets.fetch_dataloader(args)
+    logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
+    scaler = GradScaler(enabled=args.mixed_precision)
+
 
     PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
     checkpoint = {
         'total_steps': total_steps,
         'model': model,
         'optimizer': optimizer,
-        'scheduler': scheduler,
-        'logger': logger
+        'scheduler': scheduler
     }
     torch.save(checkpoint, PATH)
     checkpoint_save_path(PATH, save_json=True)
-
-    scaler = GradScaler(enabled=args.mixed_precision)
-
-    for i in range(1000):
-        logger.push({'epe': 10})
-        sleep(4)
     
-
     SAVE_FREQ = 50
     VAL_FREQ = 5000
     MAX_STEP = 500
@@ -258,8 +252,7 @@ def train(args):
                     'total_steps': total_steps,
                     'model': model,
                     'optimizer': optimizer,
-                    'scheduler': scheduler,
-                    'logger': logger
+                    'scheduler': scheduler
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
