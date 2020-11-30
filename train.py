@@ -199,12 +199,9 @@ def train(args):
 
     scaler = GradScaler(enabled=args.mixed_precision)
 
-    logger.push({'epe': 10})
-    
-
     SAVE_FREQ = 50
     VAL_FREQ = 5000
-    MAX_STEP = 200
+    MAX_STEP = 500
     add_noise = True
 
     should_keep_training = True
