@@ -208,8 +208,10 @@ def train(args):
     checkpoint_save_path(PATH, save_json=True)
     
     VAL_FREQ = 5000
+    STEPS = 4000
     add_noise = True
 
+    session_step = 0
     should_keep_training = True
     while should_keep_training:
 
@@ -269,6 +271,10 @@ def train(args):
             #    return
             
             total_steps += 1
+
+            session_step += 1
+            if session_step > STEPS:
+                return
 
             if total_steps > args.num_steps:
                 should_keep_training = False
