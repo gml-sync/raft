@@ -185,7 +185,6 @@ def train(args):
 
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
-    exit(0)
 
     SAVE_FREQ = 5
     VAL_FREQ = 5000
