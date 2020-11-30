@@ -175,12 +175,11 @@ def train(args):
                 torch.save(model.state_dict(), PATH)
 
     model.cuda()
+    model.train()
+    train_loader = datasets.fetch_dataloader(args)
 
     if not is_model_loaded:
-        model.train()
-
         total_steps = 0
-        train_loader = datasets.fetch_dataloader(args)
         optimizer, scheduler = fetch_optimizer(args, model)
         logger = Logger(model, scheduler, optimizer)
 
