@@ -34,7 +34,7 @@ def checkpoint_load_path(path):
         return path
 
     if checkpoint_info['backup_latest']:
-        return path + '.back'
+        return p.parent / (p.stem + '.back')
     else:
         return path
 
@@ -63,7 +63,7 @@ def checkpoint_save_path(path, save_json=False):
     if not save_to_back:
         return path
     else:
-        return path + '.back'
+        return p.parent / (p.stem + '.back')
 
 
 def save_model_txt(model, path):
