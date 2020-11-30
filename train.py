@@ -39,7 +39,7 @@ except:
 
 from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt, convert_to_txt
 from pathlib import Path
-from numpy import np
+import numpy as np
 
 # exclude extremly large displacements
 MAX_FLOW = 400
