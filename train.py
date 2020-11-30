@@ -40,6 +40,7 @@ except:
 from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt, convert_to_txt
 from pathlib import Path
 import numpy as np
+from time import sleep
 
 # exclude extremly large displacements
 MAX_FLOW = 400
@@ -198,6 +199,11 @@ def train(args):
     checkpoint_save_path(PATH, save_json=True)
 
     scaler = GradScaler(enabled=args.mixed_precision)
+
+    for i in range(1000):
+        logger.push({'epe': 10})
+        sleep(4)
+    
 
     SAVE_FREQ = 50
     VAL_FREQ = 5000
