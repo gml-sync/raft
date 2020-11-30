@@ -157,11 +157,19 @@ def train(args):
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
                     model.load_state_dict(checkpoint, strict=False)
+                    print('Loaded model without steps')
             if 0:
                 load_model_txt(model, path)
-                PATH = checkpoint_save_path('checkpoints/01.pth')
+                PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
 
+    PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
+    save_dict = {
+        'model_state': model.state_dict(),
+        'total_steps': total_steps
+    } 
+    torch.save(save_dict, PATH)
+    checkpoint_save_path(PATH, save_json=True)
 
     model.cuda()
     model.train()
