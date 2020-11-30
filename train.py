@@ -198,6 +198,8 @@ def train(args):
     checkpoint_save_path(PATH, save_json=True)
 
     scaler = GradScaler(enabled=args.mixed_precision)
+
+    logger.push({'epe': 10})
     
 
     SAVE_FREQ = 50
