@@ -109,7 +109,7 @@ class Logger:
         metrics_str = ("{:10.4f}, "*len(metrics_data)).format(*metrics_data)
         
         # print the training status
-        print(training_str + metrics_str)
+        #print(training_str + metrics_str)
 
         if self.writer is None:
             self.writer = SummaryWriter(self.writer_path)
@@ -188,6 +188,12 @@ def train(args):
     logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
 
+    if 0:
+        for i in range(10):
+            logger.push({'epe': i})
+
+        logger.writer.add_text('key', 'value')
+        exit(0)
 
     PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
     checkpoint = {
@@ -199,9 +205,9 @@ def train(args):
     torch.save(checkpoint, PATH)
     checkpoint_save_path(PATH, save_json=True)
     
-    SAVE_FREQ = 50
+    SAVE_FREQ = 120
     VAL_FREQ = 5000
-    MAX_STEP = 500
+    #MAX_STEP = 500
     add_noise = True
 
     should_keep_training = True
@@ -231,6 +237,7 @@ def train(args):
             logger.push(metrics)
 
             if total_steps % VAL_FREQ == VAL_FREQ - 1:
+                print('Saving. Step', total_steps)
                 results = {}
                 for val_dataset in args.validation:
                     if val_dataset == 'chairs':
@@ -257,11 +264,10 @@ def train(args):
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
             
-            if total_steps > MAX_STEP:
-                return
+            #if total_steps > MAX_STEP:
+            #    return
             
             total_steps += 1
-            print('Step', total_steps)
 
             if total_steps > args.num_steps:
                 should_keep_training = False
