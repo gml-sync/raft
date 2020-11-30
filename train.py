@@ -156,8 +156,8 @@ def train(args):
                 checkpoint = torch.load(path)
                 if 'model' in checkpoint: # New format, full save
                     total_steps = checkpoint['total_steps']
-                    model.load_state_dict(checkpoint['model'], strict=False)
-                    optimizer.load_state_dict(checkpoint['optimizer'])
+                    model = checkpoint['model']
+                    optimizer = checkpoint['optimizer']
                     scheduler = checkpoint['scheduler']
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
@@ -171,8 +171,8 @@ def train(args):
     PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
     checkpoint = {
         'total_steps': total_steps,
-        'model': model.state_dict(),
-        'optimizer': optimizer.state_dict(),
+        'model': model,
+        'optimizer': optimizer,
         'scheduler': scheduler
     }
     torch.save(checkpoint, PATH)
@@ -185,6 +185,7 @@ def train(args):
 
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
+    print('Logger initialized!')
 
     SAVE_FREQ = 5
     VAL_FREQ = 5000
@@ -234,11 +235,13 @@ def train(args):
             
             if total_steps % SAVE_FREQ == SAVE_FREQ - 1:
                 PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
-                save_dict = {
-                    'model': model.state_dict(),
-                    'total_steps': total_steps
-                } 
-                torch.save(save_dict, PATH)
+                checkpoint = {
+                    'total_steps': total_steps,
+                    'model': model,
+                    'optimizer': optimizer,
+                    'scheduler': scheduler
+                }
+                torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
             
             if total_steps > 10:
