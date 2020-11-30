@@ -26,7 +26,7 @@ try:
 except:
     # dummy GradScaler for PyTorch < 1.6
     class GradScaler:
-        def __init__(self, **kwargs):
+        def __init__(self, enabled):
             pass
         def scale(self, loss):
             return loss
@@ -141,8 +141,11 @@ def train(args):
     model = nn.DataParallel(RAFT(args))
     print("Parameter Count: %d" % count_parameters(model))
 
+    model.cuda()
     total_steps = 0
-    
+    train_loader = datasets.fetch_dataloader(args)
+    optimizer, scheduler = fetch_optimizer(args, model)
+
     if args.restore_ckpt is not None:
         path = checkpoint_load_path(args.restore_ckpt)
         if Path(path).exists():
@@ -151,9 +154,11 @@ def train(args):
                 model.load_state_dict(checkpoint, strict=False)
             if 1:
                 checkpoint = torch.load(path)
-                if 'model_state' in checkpoint: # New format with total_steps number
-                    model.load_state_dict(checkpoint['model_state'], strict=False)
+                if 'model' in checkpoint: # New format, full save
                     total_steps = checkpoint['total_steps']
+                    model.load_state_dict(checkpoint['model'], strict=False)
+                    optimizer.load_state_dict(checkpoint['optimizer'])
+                    scheduler = checkpoint['scheduler']
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
                     model.load_state_dict(checkpoint, strict=False)
@@ -164,24 +169,23 @@ def train(args):
                 torch.save(model.state_dict(), PATH)
 
     PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
-    save_dict = {
-        'model_state': model.state_dict(),
-        'total_steps': total_steps
-    } 
-    torch.save(save_dict, PATH)
+    checkpoint = {
+        'total_steps': total_steps,
+        'model': model.state_dict(),
+        'optimizer': optimizer.state_dict(),
+        'scheduler': scheduler
+    }
+    torch.save(checkpoint, PATH)
     checkpoint_save_path(PATH, save_json=True)
 
-    model.cuda()
     model.train()
 
     if args.stage != 'chairs':
         model.module.freeze_bn()
 
-    train_loader = datasets.fetch_dataloader(args)
-    optimizer, scheduler = fetch_optimizer(args, model)
-
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
+    exit(0)
 
     SAVE_FREQ = 5
     VAL_FREQ = 5000
@@ -232,7 +236,7 @@ def train(args):
             if total_steps % SAVE_FREQ == SAVE_FREQ - 1:
                 PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
                 save_dict = {
-                    'model_state': model.state_dict(),
+                    'model': model.state_dict(),
                     'total_steps': total_steps
                 } 
                 torch.save(save_dict, PATH)
@@ -242,6 +246,7 @@ def train(args):
                 return
             
             total_steps += 1
+            print('Step', total_steps)
 
             if total_steps > args.num_steps:
                 should_keep_training = False
