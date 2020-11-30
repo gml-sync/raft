@@ -187,8 +187,9 @@ def train(args):
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
 
-    SAVE_FREQ = 5
+    SAVE_FREQ = 50
     VAL_FREQ = 5000
+    MAX_STEP = 200
     add_noise = True
 
     should_keep_training = True
@@ -244,7 +245,7 @@ def train(args):
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
             
-            if total_steps > 10:
+            if total_steps > MAX_STEP:
                 return
             
             total_steps += 1
