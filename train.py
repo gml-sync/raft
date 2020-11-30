@@ -133,7 +133,7 @@ class Logger:
 
     def write_dict(self, results):
         if self.writer is None:
-            self.writer = SummaryWriter(self.writer_path)
+            self.writer = SummaryWriter(self.writer_path + '-val')
 
         for key in results:
             self.writer.add_scalar(key, results[key], self.total_steps)
@@ -179,7 +179,7 @@ def train(args):
 
     if not is_model_loaded:
         model.train()
-        
+
         total_steps = 0
         optimizer, scheduler = fetch_optimizer(args, model)
 
@@ -240,7 +240,7 @@ def train(args):
             logger.push(metrics)
 
             if total_steps % VAL_FREQ == VAL_FREQ - 1:
-                print('Saving. Step', total_steps)
+                print('Validation. Step', total_steps)
                 results = {}
                 for val_dataset in args.validation:
                     if val_dataset == 'chairs':
@@ -257,6 +257,7 @@ def train(args):
                     model.module.freeze_bn()
             
             if total_steps % SAVE_FREQ == SAVE_FREQ - 1:
+                print('Saving. Step', total_steps)
                 PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
                 checkpoint = {
                     'total_steps': total_steps,
