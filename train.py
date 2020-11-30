@@ -175,15 +175,18 @@ def train(args):
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
 
+    model.cuda()
+
     if not is_model_loaded:
+        model.train()
+        
         total_steps = 0
         optimizer, scheduler = fetch_optimizer(args, model)
 
         if args.stage != 'chairs':
             model.module.freeze_bn()
 
-    model.cuda()
-    model.train()
+    
     train_loader = datasets.fetch_dataloader(args)
     logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
