@@ -174,21 +174,11 @@ def train(args):
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
 
-    PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
-    checkpoint = {
-        'total_steps': total_steps,
-        'model': model,
-        'optimizer': optimizer,
-        'scheduler': scheduler
-    }
-    torch.save(checkpoint, PATH)
-    checkpoint_save_path(PATH, save_json=True)
-
     model.cuda()
 
     if not is_model_loaded:
         model.train()
-        
+
         total_steps = 0
         train_loader = datasets.fetch_dataloader(args)
         optimizer, scheduler = fetch_optimizer(args, model)
@@ -196,6 +186,17 @@ def train(args):
 
         if args.stage != 'chairs':
             model.module.freeze_bn()
+
+    PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
+    checkpoint = {
+        'total_steps': total_steps,
+        'model': model,
+        'optimizer': optimizer,
+        'scheduler': scheduler,
+        'logger': logger
+    }
+    torch.save(checkpoint, PATH)
+    checkpoint_save_path(PATH, save_json=True)
 
     scaler = GradScaler(enabled=args.mixed_precision)
     
@@ -253,7 +254,8 @@ def train(args):
                     'total_steps': total_steps,
                     'model': model,
                     'optimizer': optimizer,
-                    'scheduler': scheduler
+                    'scheduler': scheduler,
+                    'logger': logger
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
