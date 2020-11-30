@@ -207,9 +207,7 @@ def train(args):
     torch.save(checkpoint, PATH)
     checkpoint_save_path(PATH, save_json=True)
     
-    SAVE_FREQ = 120
     VAL_FREQ = 5000
-    #MAX_STEP = 500
     add_noise = True
 
     should_keep_training = True
@@ -237,6 +235,18 @@ def train(args):
             scaler.update()
 
             logger.push(metrics)
+            
+            if total_steps % SUM_FREQ == SUM_FREQ - 1:
+                print('Saving. Step', total_steps)
+                PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
+                checkpoint = {
+                    'total_steps': total_steps,
+                    'model': model,
+                    'optimizer': optimizer,
+                    'scheduler': scheduler
+                }
+                torch.save(checkpoint, PATH)
+                checkpoint_save_path(PATH, save_json=True)
 
             if total_steps % VAL_FREQ == VAL_FREQ - 1:
                 print('Validation. Step', total_steps)
@@ -255,19 +265,7 @@ def train(args):
                 if args.stage != 'chairs':
                     model.module.freeze_bn()
             
-            if total_steps % SAVE_FREQ == SAVE_FREQ - 1:
-                print('Saving. Step', total_steps)
-                PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
-                checkpoint = {
-                    'total_steps': total_steps,
-                    'model': model,
-                    'optimizer': optimizer,
-                    'scheduler': scheduler
-                }
-                torch.save(checkpoint, PATH)
-                checkpoint_save_path(PATH, save_json=True)
-            
-            #if total_steps > MAX_STEP:
+            #if total_steps > 1:
             #    return
             
             total_steps += 1
