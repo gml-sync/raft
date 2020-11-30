@@ -43,7 +43,8 @@ import numpy as np
 
 # exclude extremly large displacements
 MAX_FLOW = 400
-SUM_FREQ = 100
+
+SUM_FREQ = 1
 VAL_FREQ = 5000
 
 
@@ -185,11 +186,6 @@ def train(args):
 
     scaler = GradScaler(enabled=args.mixed_precision)
     logger = Logger(model, scheduler)
-    print('Logger initialized!')
-
-    writer = SummaryWriter()
-    writer.add_scalar('Loss/train', np.random.random(), 20)
-    writer.close()
 
     SAVE_FREQ = 5
     VAL_FREQ = 5000
@@ -257,8 +253,6 @@ def train(args):
             if total_steps > args.num_steps:
                 should_keep_training = False
                 break
-
-    logger.close()
 
 
 if __name__ == '__main__':
