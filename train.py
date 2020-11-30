@@ -91,16 +91,19 @@ def fetch_optimizer(args, model):
     
 
 class Logger:
-    def __init__(self, model, scheduler):
+    def __init__(self, model, scheduler, optimizer):
         self.model = model
         self.scheduler = scheduler
+        self.optimizer = optimizer
         self.total_steps = 0
         self.running_loss = {}
         self.writer = None
 
     def _print_training_status(self):
         metrics_data = [self.running_loss[k]/SUM_FREQ for k in sorted(self.running_loss.keys())]
-        training_str = "[{:6d}, {:10.7f}] ".format(self.total_steps+1, self.scheduler.get_last_lr()[0])
+        training_str = "[{:6d}, {:10.7f}] ".format(
+            self.total_steps+1,
+            self.optimizer.param_groups[0]["lr"])
         metrics_str = ("{:10.4f}, "*len(metrics_data)).format(*metrics_data)
         
         # print the training status
@@ -137,15 +140,15 @@ class Logger:
         self.writer.close()
 
 def train(args):
-    
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
     model = nn.DataParallel(RAFT(args))
     print("Parameter Count: %d" % count_parameters(model))
 
-    model.cuda()
     total_steps = 0
-    train_loader = datasets.fetch_dataloader(args)
-    optimizer, scheduler = fetch_optimizer(args, model)
+    optimizer = None
+    scheduler = None
+    logger = None
+    is_model_loaded = False
 
     if args.restore_ckpt is not None:
         path = checkpoint_load_path(args.restore_ckpt)
@@ -160,6 +163,8 @@ def train(args):
                     model = checkpoint['model']
                     optimizer = checkpoint['optimizer']
                     scheduler = checkpoint['scheduler']
+                    logger = checkpoint['logger']
+                    is_model_loaded = True
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
                     model.load_state_dict(checkpoint, strict=False)
@@ -179,13 +184,21 @@ def train(args):
     torch.save(checkpoint, PATH)
     checkpoint_save_path(PATH, save_json=True)
 
-    model.train()
+    model.cuda()
 
-    if args.stage != 'chairs':
-        model.module.freeze_bn()
+    if not is_model_loaded:
+        model.train()
+        
+        total_steps = 0
+        train_loader = datasets.fetch_dataloader(args)
+        optimizer, scheduler = fetch_optimizer(args, model)
+        logger = Logger(model, scheduler, optimizer)
+
+        if args.stage != 'chairs':
+            model.module.freeze_bn()
 
     scaler = GradScaler(enabled=args.mixed_precision)
-    logger = Logger(model, scheduler)
+    
 
     SAVE_FREQ = 50
     VAL_FREQ = 5000
