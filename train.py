@@ -45,7 +45,7 @@ from time import sleep
 # exclude extremly large displacements
 MAX_FLOW = 400
 
-SUM_FREQ = 1
+SUM_FREQ = 100
 VAL_FREQ = 5000
 
 
@@ -133,8 +133,7 @@ class Logger:
 
     def write_dict(self, results):
         if self.writer is None:
-            self.writer = SummaryWriter(self.writer_path + '-val')
-
+            self.writer = SummaryWriter(self.writer_path)
         for key in results:
             self.writer.add_scalar(key, results[key], self.total_steps)
 
