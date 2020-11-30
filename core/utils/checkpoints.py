@@ -25,7 +25,7 @@ def checkpoint_load_path(path):
     returns path or backup path based on saved json.
     '''
     p = Path(path)
-    info = Path(path + '.json')
+    info = Path(p.parent / (p.stem + '.json'))
     if not info.exists():
         return path
 
@@ -48,7 +48,7 @@ def checkpoint_save_path(path, save_json=False):
     p = Path(path)
     save_to_back = False
 
-    info = Path(path + '.json')
+    info = Path(p.parent / (p.stem + '.json'))
     if info.exists():
         checkpoint_info = read_json(info)
         if not checkpoint_info is None:
