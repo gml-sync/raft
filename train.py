@@ -239,7 +239,7 @@ def train(args):
                     'model': model,
                     'optimizer': optimizer,
                     'scheduler': scheduler,
-                    'batch_start': batch_start
+                    'batch_start': i_batch
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
