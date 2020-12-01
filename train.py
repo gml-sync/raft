@@ -148,7 +148,7 @@ def train(args):
     total_steps = 0
     optimizer = None
     scheduler = None
-    logger = None
+    train_loader = None
     is_model_loaded = False
 
     if args.restore_ckpt is not None:
@@ -164,6 +164,10 @@ def train(args):
                     model = checkpoint['model']
                     optimizer = checkpoint['optimizer']
                     scheduler = checkpoint['scheduler']
+                    if 'train_loader' in checkpoint:
+                        train_loader = checkpoint['train_loader']
+                    else:
+                        train_loader = datasets.fetch_dataloader(args)
                     is_model_loaded = True
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
@@ -181,12 +185,13 @@ def train(args):
 
         total_steps = 0
         optimizer, scheduler = fetch_optimizer(args, model)
+        train_loader = datasets.fetch_dataloader(args)
 
         if args.stage != 'chairs':
             model.module.freeze_bn()
 
-    
-    train_loader = datasets.fetch_dataloader(args)
+        
+
     logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
 
@@ -196,16 +201,6 @@ def train(args):
 
         logger.writer.add_text('key', 'value')
         exit(0)
-
-    PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
-    checkpoint = {
-        'total_steps': total_steps,
-        'model': model,
-        'optimizer': optimizer,
-        'scheduler': scheduler
-    }
-    torch.save(checkpoint, PATH)
-    checkpoint_save_path(PATH, save_json=True)
     
     VAL_FREQ = 5000
     STEPS = 3000
@@ -245,7 +240,8 @@ def train(args):
                     'total_steps': total_steps,
                     'model': model,
                     'optimizer': optimizer,
-                    'scheduler': scheduler
+                    'scheduler': scheduler,
+                    'train_loader': train_loader
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
