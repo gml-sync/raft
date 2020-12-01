@@ -208,7 +208,7 @@ def train(args):
     checkpoint_save_path(PATH, save_json=True)
     
     VAL_FREQ = 5000
-    STEPS = 4000
+    STEPS = 3000
     add_noise = True
 
     session_step = 0
