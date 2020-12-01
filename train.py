@@ -37,9 +37,9 @@ except:
         def update(self):
             pass
 
-from utils.checkpoints import checkpoint_load_path, checkpoint_save_path, save_model_txt, load_model_txt, convert_to_txt
+from utils.checkpoints import checkpoint_load_path, checkpoint_save_path
+from utils.checkpoints import save_model_txt, load_model_txt, convert_to_txt
 from pathlib import Path
-import numpy as np
 from time import sleep
 
 # exclude extremly large displacements
@@ -148,7 +148,8 @@ def train(args):
     total_steps = 0
     optimizer = None
     scheduler = None
-    train_loader = None
+    batch_start = 0
+    
     is_model_loaded = False
 
     if args.restore_ckpt is not None:
@@ -164,10 +165,7 @@ def train(args):
                     model = checkpoint['model']
                     optimizer = checkpoint['optimizer']
                     scheduler = checkpoint['scheduler']
-                    if 'train_loader' in checkpoint:
-                        train_loader = checkpoint['train_loader']
-                    else:
-                        train_loader = datasets.fetch_dataloader(args)
+                    batch_start = checkpoint['batch_start']
                     is_model_loaded = True
                     print('Continue from', total_steps, 'step')
                 else: # Standard format
@@ -182,16 +180,13 @@ def train(args):
 
     if not is_model_loaded:
         model.train()
-
-        total_steps = 0
         optimizer, scheduler = fetch_optimizer(args, model)
-        train_loader = datasets.fetch_dataloader(args)
 
         if args.stage != 'chairs':
             model.module.freeze_bn()
 
         
-
+    train_loader = datasets.fetch_dataloader(args)
     logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
 
@@ -206,12 +201,15 @@ def train(args):
     STEPS = 3000
     add_noise = True
 
-    session_step = 0
+    session_steps = 0
     should_keep_training = True
     while should_keep_training:
 
         print('Start training')
         for i_batch, data_blob in enumerate(train_loader):
+            if i_batch < batch_start: # Continue from saved batch number
+                continue
+
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
 
@@ -241,7 +239,7 @@ def train(args):
                     'model': model,
                     'optimizer': optimizer,
                     'scheduler': scheduler,
-                    'train_loader': train_loader
+                    'batch_start': batch_start
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
@@ -268,8 +266,8 @@ def train(args):
             
             total_steps += 1
 
-            session_step += 1
-            if session_step > STEPS:
+            session_steps += 1
+            if session_steps > STEPS:
                 return
 
             if total_steps > args.num_steps:
