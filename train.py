@@ -210,6 +210,7 @@ def train(args):
 
         logfile.log('Start training')
         for i_batch, data_blob in enumerate(train_loader):
+            logfile.log("Batch number: %d" % i_batch)
             if i_batch < batch_start: # Continue from saved batch number
                 continue
 

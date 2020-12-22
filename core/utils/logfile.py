@@ -12,6 +12,7 @@ class Logfile:
 		if self.logfile:
 			print(datetime.now().strftime("[%Y-%m-%d %H:%M:%S]"), end='   ', file=self.logfile)
 			print(*args, file=self.logfile, **kwargs) # Pass on all positional and keyword arguments
+			self.logfile.flush()
 		else:
 			exit('Log file was not set before writing')
 
