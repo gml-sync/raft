@@ -45,7 +45,7 @@ from time import sleep
 
 logfile.set_logfile('runs/stdout.log')
 
-# exclude extremly large displacements
+# exclude extremely large displacements
 MAX_FLOW = 400
 
 SUM_FREQ = 100
