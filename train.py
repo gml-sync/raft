@@ -41,8 +41,8 @@ from utils.checkpoints import checkpoint_load_path, checkpoint_save_path
 from utils.checkpoints import save_model_txt, load_model_txt, convert_to_txt
 from utils.logfile import logfile
 from pathlib import Path
+import time
 from time import sleep
-from datetime import datetime
 
 logfile.set_logfile('runs/stdout.log')
 
@@ -304,7 +304,7 @@ if __name__ == '__main__':
     parser.add_argument('--add_noise', action='store_true')
     args = parser.parse_args()
 
-    rand_seed = datetime.now()
+    rand_seed = int(time.time() * 1000)
     torch.manual_seed(rand_seed)
     np.random.seed(rand_seed)
 
