@@ -43,6 +43,8 @@ from utils.logfile import logfile
 from pathlib import Path
 from time import sleep
 
+logfile = Logfile('runs/log.txt')
+
 # exclude extremly large displacements
 MAX_FLOW = 400
 
@@ -144,7 +146,6 @@ class Logger:
 def train(args):
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
     model = nn.DataParallel(RAFT(args))
-    print("Parameter Count: %d" % count_parameters(model))
     logfile.log("Parameter Count: %d" % count_parameters(model))
 
     total_steps = 0
@@ -169,10 +170,10 @@ def train(args):
                     scheduler = checkpoint['scheduler']
                     batch_start = checkpoint['batch_start']
                     is_model_loaded = True
-                    print('Continue from', total_steps, 'step')
+                    logfile.log('Continue from', total_steps, 'step')
                 else: # Standard format
                     model.load_state_dict(checkpoint, strict=False)
-                    print('Loaded model without steps')
+                    logfile.log('Loaded model without steps')
             if 0:
                 load_model_txt(model, path)
                 PATH = 'checkpoints/01.pth'
@@ -207,7 +208,7 @@ def train(args):
     should_keep_training = True
     while should_keep_training:
 
-        print('Start training')
+        logfile.log('Start training')
         for i_batch, data_blob in enumerate(train_loader):
             if i_batch < batch_start: # Continue from saved batch number
                 continue
@@ -234,7 +235,7 @@ def train(args):
             logger.push(metrics)
             
             if total_steps % SUM_FREQ == SUM_FREQ - 1:
-                print('Saving. Step', total_steps)
+                logfile.log('Saving. Step', total_steps)
                 PATH = checkpoint_save_path('checkpoints/%s.pth' % args.name)
                 checkpoint = {
                     'total_steps': total_steps,
@@ -247,7 +248,7 @@ def train(args):
                 checkpoint_save_path(PATH, save_json=True)
 
             if total_steps % VAL_FREQ == VAL_FREQ - 1:
-                print('Validation. Step', total_steps)
+                logfile.log('Validation. Step', total_steps)
                 results = {}
                 for val_dataset in args.validation:
                     if val_dataset == 'chairs':

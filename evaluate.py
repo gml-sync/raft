@@ -17,6 +17,8 @@ from utils import frame_utils
 from raft import RAFT
 from utils.utils import InputPadder, forward_interpolate
 
+from utils.logfile import logfile
+
 
 @torch.no_grad()
 def create_sintel_submission(model, iters=32, warm_start=False, output_path='sintel_submission'):
@@ -88,7 +90,7 @@ def validate_chairs(model, iters=24):
         epe_list.append(epe.view(-1).numpy())
 
     epe = np.mean(np.concatenate(epe_list))
-    print("Validation Chairs EPE: %f" % epe)
+    logfile.log("Validation Chairs EPE: %f" % epe)
     return {'chairs': epe}
 
 
@@ -121,7 +123,7 @@ def validate_sintel(model, iters=32):
         px3 = np.mean(epe_all<3)
         px5 = np.mean(epe_all<5)
 
-        print("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
+        logfile.log("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
         results[dstype] = np.mean(epe_list)
 
     return results
@@ -162,7 +164,7 @@ def validate_kitti(model, iters=24):
     epe = np.mean(epe_list)
     f1 = 100 * np.mean(out_list)
 
-    print("Validation KITTI: %f, %f" % (epe, f1))
+    logfile.log("Validation KITTI: %f, %f" % (epe, f1))
     return {'kitti-epe': epe, 'kitti-f1': f1}
 
 

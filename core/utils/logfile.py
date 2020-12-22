@@ -7,7 +7,6 @@ class Logfile:
 	def __init__(self, filename):
 		self.logfile_name = filename
 		self.logfile = open(self.logfile_name, 'a')
-		print('Log object created')
 
 	def log(self, *args, **kwargs):
 		print(datetime.now().strftime("[%Y-%m-%d %H:%M:%S]"), end='   ', file=self.logfile)
