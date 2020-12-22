@@ -304,7 +304,7 @@ if __name__ == '__main__':
     parser.add_argument('--add_noise', action='store_true')
     args = parser.parse_args()
 
-    rand_seed = int(time.time() * 1000) % (2 ** 32)
+    rand_seed = int(time.time() * 1000) % (2 ** 30)
     torch.manual_seed(rand_seed)
     np.random.seed(rand_seed)
 
