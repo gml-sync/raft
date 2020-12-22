@@ -43,7 +43,7 @@ from utils.logfile import logfile
 from pathlib import Path
 from time import sleep
 
-logfile = Logfile('runs/log.txt')
+logfile.set_logfile('runs/stdout.log')
 
 # exclude extremly large displacements
 MAX_FLOW = 400
