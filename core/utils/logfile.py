@@ -1,7 +1,5 @@
 from datetime import datetime
 
-logfile = Logfile('log.txt')
-
 class Logfile:
 	logfile_name = './log.txt'
 	logfile = None
@@ -17,3 +15,5 @@ class Logfile:
 
 	def __del__(self):
 		self.logfile.close()
+
+logfile = Logfile('log.txt')
