@@ -230,6 +230,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, 
         pin_memory=False, shuffle=True, num_workers=4, drop_last=True)
 
-    print('Training with %d image pairs' % len(train_dataset))
+    from utils.logfile import logfile
+    logfile.log('Training with %d image pairs' % len(train_dataset))
     return train_loader
 

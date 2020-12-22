@@ -39,6 +39,7 @@ except:
 
 from utils.checkpoints import checkpoint_load_path, checkpoint_save_path
 from utils.checkpoints import save_model_txt, load_model_txt, convert_to_txt
+from utils.logfile import logfile
 from pathlib import Path
 from time import sleep
 
@@ -144,6 +145,7 @@ def train(args):
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
     model = nn.DataParallel(RAFT(args))
     print("Parameter Count: %d" % count_parameters(model))
+    logfile.log("Parameter Count: %d" % count_parameters(model))
 
     total_steps = 0
     optimizer = None
