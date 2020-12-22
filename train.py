@@ -42,6 +42,7 @@ from utils.checkpoints import save_model_txt, load_model_txt, convert_to_txt
 from utils.logfile import logfile
 from pathlib import Path
 from time import sleep
+from datetime import datetime
 
 logfile.set_logfile('runs/stdout.log')
 
@@ -211,8 +212,8 @@ def train(args):
         logfile.log('Start training from batch number %d' % batch_start)
         for i_batch, data_blob in enumerate(train_loader):
             logfile.log('Batch number: %d' % i_batch)
-            if i_batch < batch_start: # Continue from saved batch number
-                continue
+            #if i_batch < batch_start: # Continue from saved batch number
+            #    continue
 
             optimizer.zero_grad()
             image1, image2, flow, valid = [x.cuda() for x in data_blob]
@@ -303,8 +304,9 @@ if __name__ == '__main__':
     parser.add_argument('--add_noise', action='store_true')
     args = parser.parse_args()
 
-    torch.manual_seed(1234)
-    np.random.seed(1234)
+    rand_seed = datetime.now()
+    torch.manual_seed(rand_seed)
+    np.random.seed(rand_seed)
 
     if not os.path.isdir('checkpoints'):
         os.mkdir('checkpoints')
