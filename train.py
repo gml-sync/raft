@@ -208,9 +208,9 @@ def train(args):
     should_keep_training = True
     while should_keep_training:
 
-        logfile.log('Start training')
+        logfile.log('Start training from batch number %d' % batch_start)
         for i_batch, data_blob in enumerate(train_loader):
-            logfile.log("Batch number: %d" % i_batch)
+            logfile.log('Batch number: %d' % i_batch)
             if i_batch < batch_start: # Continue from saved batch number
                 continue
 
