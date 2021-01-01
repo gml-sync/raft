@@ -1,0 +1,14 @@
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+
+# Do not create new environment!
+pip install pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 -c pytorch matplotlib tensorboard scipy opencv
+conda activate pytorch
+
+d:
+cd d:\Iter\occlusions\проекты исходники\raft\git\
+tensorboard --logdir=runs/logbook
+
+mkdir checkpoints
+unzip raft-models.zip
+
+mkdir -p datasets/Sintel

@@ -7,5 +7,4 @@ pytorch_env
 models
 build
 correlation.egg-info
-instructions.txt
 runs
