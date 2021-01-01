@@ -278,7 +278,6 @@ def train(args):
             if total_steps > args.num_steps:
                 should_keep_training = False
                 break
-            exit()
 
 
 if __name__ == '__main__':
