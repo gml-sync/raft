@@ -14,6 +14,7 @@ import os.path as osp
 from utils import frame_utils
 from utils.augmentor import FlowAugmentor, SparseFlowAugmentor
 
+from utils.logfile import logfile
 
 class FlowDataset(data.Dataset):
     def __init__(self, aug_params=None, sparse=False):
@@ -157,6 +158,29 @@ class FlyingThings3D(FlowDataset):
                             self.image_list += [ [images[i+1], images[i]] ]
                             self.flow_list += [ flows[i+1] ]
       
+class FlyingThings3DSubset(FlowDataset):
+    def __init__(self, aug_params=None, root='datasets/FlyingThings3DSubset'):
+        super(FlyingThings3DSubset, self).__init__(aug_params)
+
+        for cam in ['left']:
+            for direction in ['into_future', 'into_past']:
+                image_dirs = sorted(glob(osp.join(root, 'train/image_clean')))
+                image_dirs = sorted([osp.join(f, cam) for f in image_dirs])
+
+                flow_dirs = sorted(glob(osp.join(root, 'train/flow')))
+                flow_dirs = sorted([osp.join(f, cam, direction) for f in flow_dirs])
+
+                for idir, fdir in zip(image_dirs, flow_dirs):
+                    images = sorted(glob(osp.join(idir, '*.png')) )
+                    flows = sorted(glob(osp.join(fdir, '*.flo')) )
+                    for i in range(len(flows)-1):
+                        if direction == 'into_future':
+                            self.image_list += [ [images[i], images[i+1]] ]
+                            self.flow_list += [ flows[i] ]
+                        elif direction == 'into_past':
+                            self.image_list += [ [images[i+1], images[i]] ]
+                            self.flow_list += [ flows[i+1] ]
+        logfile.log('Things subset list:', self.flow_list)
 
 class KITTI(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
@@ -205,9 +229,10 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     
     elif args.stage == 'things':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.4, 'max_scale': 0.8, 'do_flip': True}
-        clean_dataset = FlyingThings3D(aug_params, dstype='frames_cleanpass')
-        final_dataset = FlyingThings3D(aug_params, dstype='frames_finalpass')
-        train_dataset = clean_dataset + final_dataset
+        #clean_dataset = FlyingThings3D(aug_params, dstype='frames_cleanpass')
+        #final_dataset = FlyingThings3D(aug_params, dstype='frames_finalpass')
+        #train_dataset = clean_dataset + final_dataset
+        train_dataset = FlyingThings3DSubset(aug_params)
 
     elif args.stage == 'sintel':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.6, 'do_flip': True}
@@ -230,7 +255,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, 
         pin_memory=False, shuffle=True, num_workers=4, drop_last=True)
 
-    from utils.logfile import logfile
+    
     logfile.log('Training with %d image pairs' % len(train_dataset))
     return train_loader
 

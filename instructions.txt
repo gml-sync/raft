@@ -1,6 +1,9 @@
-conda install pytorch torchvision torchaudio cpuonly -c pytorch
+Do not create new environment!
 
-# Do not create new environment!
+conda install pytorch=1.6.0 torchvision=0.7.0 torchaudio cpuonly -c pytorch
+conda install matplotlib tensorboard scipy opencv
+
+
 pip install pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 -c pytorch matplotlib tensorboard scipy opencv
 conda activate pytorch
 
@@ -12,3 +15,9 @@ mkdir checkpoints
 unzip raft-models.zip
 
 mkdir -p datasets/Sintel
+
+Train on Sintel
+python -u train.py --name raft-sintel --stage sintel --validation sintel --restore_ckpt checkpoints/raft-sintel.pth --gpus 0 1 --num_steps 100000 --batch_size 4 --lr 0.000125 --image_size 368 768 --wdecay 0.00001 --gamma=0.85
+
+Train on Things3DSubset
+python -u train.py --name raft-things --stage things --validation sintel --restore_ckpt checkpoints/raft-chairs.pth --gpus 0 1 --num_steps 100000 --batch_size 4 --lr 0.000125 --image_size 400 720 --wdecay 0.0001
