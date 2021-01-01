@@ -162,7 +162,7 @@ def train(args):
             if 0:
                 checkpoint = torch.load(path, map_location=torch.device('cpu'))
                 model.load_state_dict(checkpoint, strict=False)
-            if 1:
+            if 0:
                 checkpoint = torch.load(path)
                 if 'model' in checkpoint: # New format, full save
                     total_steps = checkpoint['total_steps']
@@ -175,10 +175,11 @@ def train(args):
                 else: # Standard format
                     model.load_state_dict(checkpoint, strict=False)
                     logfile.log('Loaded model without steps')
-            if 0:
+            if 1:
                 load_model_txt(model, path)
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
+                exit()
 
     model.cuda()
 
@@ -227,7 +228,7 @@ def train(args):
 
             loss, metrics = sequence_loss(flow_predictions, flow, valid, args.gamma)
             scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)                
+            scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
             
             scaler.step(optimizer)
