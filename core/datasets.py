@@ -164,10 +164,10 @@ class FlyingThings3DSubset(FlowDataset):
 
         for cam in ['left']:
             for direction in ['into_future', 'into_past']:
-                image_dirs = sorted(glob(osp.join(root, 'train/image_clean')))
+                image_dirs = sorted(glob(osp.join(root, 'FlyingThings3D_subset_img/train/image_clean')))
                 image_dirs = sorted([osp.join(f, cam) for f in image_dirs])
 
-                flow_dirs = sorted(glob(osp.join(root, 'train/flow')))
+                flow_dirs = sorted(glob(osp.join(root, 'FlyingThings3D_subset/train/flow')))
                 flow_dirs = sorted([osp.join(f, cam, direction) for f in flow_dirs])
 
                 for idir, fdir in zip(image_dirs, flow_dirs):
