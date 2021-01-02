@@ -180,7 +180,8 @@ class FlyingThings3DSubset(FlowDataset):
                         elif direction == 'into_past':
                             self.image_list += [ [images[i+1], images[i]] ]
                             self.flow_list += [ flows[i+1] ]
-        #logfile.log('Things subset list:', self.flow_list)
+        logfile.log('Things subset list:', self.flow_list[:10])
+        logfile.log('Things subset list:', self.image_list[:10])
 
 class KITTI(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
@@ -257,5 +258,6 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
 
     
     logfile.log('Training with %d image pairs' % len(train_dataset))
+    exit(0)
     return train_loader
 
