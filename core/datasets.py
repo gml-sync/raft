@@ -14,6 +14,7 @@ import os.path as osp
 from utils import frame_utils
 from utils.augmentor import FlowAugmentor, SparseFlowAugmentor
 
+from pathlib import Path
 from utils.logfile import logfile
 
 class FlowDataset(data.Dataset):
@@ -172,14 +173,25 @@ class FlyingThings3DSubset(FlowDataset):
 
                 for idir, fdir in zip(image_dirs, flow_dirs):
                     images = sorted(glob(osp.join(idir, '*.png')) )
+                    image_indexer = {}
+                    for i in range(len(images)):
+                        image_indexer[ Path(images[i]).stem ] = i
                     flows = sorted(glob(osp.join(fdir, '*.flo')) )
                     for i in range(len(flows)-1):
+                        flow_name = Path(flows[i]).stem
+                        j = image_indexer[flow_name]
                         if direction == 'into_future':
-                            self.image_list += [ [images[i], images[i+1]] ]
-                            self.flow_list += [ flows[i] ]
+                            if j + 1 < len(images):
+                                self.image_list += [ [images[j], images[j+1]] ]
+                                self.flow_list += [ flows[i] ]
+                            else:
+                                logfile.log('ban', flow_name)
                         elif direction == 'into_past':
-                            self.image_list += [ [images[i+1], images[i]] ]
-                            self.flow_list += [ flows[i+1] ]
+                            if j - 1 >= 0:
+                                self.image_list += [ [images[j], images[j-1]] ]
+                                self.flow_list += [ flows[i] ]
+                            else:
+                                logfile.log('ban', flow_name)
         logfile.log('Things subset list:', self.flow_list[:10])
         logfile.log('Things subset list:', self.image_list[:10])
 
