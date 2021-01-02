@@ -192,8 +192,8 @@ class FlyingThings3DSubset(FlowDataset):
                                 self.flow_list += [ flows[i] ]
                             else:
                                 logfile.log('ban', flow_name)
-        logfile.log('Things subset list:', self.flow_list[:10])
-        logfile.log('Things subset list:', self.image_list[:10])
+        logfile.log('Flow list:', len(self.flow_list))
+        logfile.log('Im list:', len(self.image_list))
 
 class KITTI(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
