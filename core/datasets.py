@@ -177,7 +177,6 @@ class FlyingThings3DSubset(FlowDataset):
                     for i in range(len(images)):
                         image_indexer[ Path(images[i]).stem ] = i
                     flows = sorted(glob(osp.join(fdir, '*.flo')) )
-                    logfile.log('len', len(flows))
                     for i in range(len(flows)-1):
                         flow_name = Path(flows[i]).stem
                         j = image_indexer[flow_name]
@@ -185,16 +184,10 @@ class FlyingThings3DSubset(FlowDataset):
                             if j + 1 < len(images):
                                 self.image_list += [ [images[j], images[j+1]] ]
                                 self.flow_list += [ flows[i] ]
-                            else:
-                                logfile.log('ban', flow_name)
                         elif direction == 'into_past':
                             if j - 1 >= 0:
                                 self.image_list += [ [images[j], images[j-1]] ]
                                 self.flow_list += [ flows[i] ]
-                            else:
-                                logfile.log('ban', flow_name)
-        logfile.log('Flow list:', len(self.flow_list))
-        logfile.log('Im list:', len(self.image_list))
 
 class KITTI(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
@@ -271,6 +264,5 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
 
     
     logfile.log('Training with %d image pairs' % len(train_dataset))
-    exit(0)
     return train_loader
 
