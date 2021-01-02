@@ -177,6 +177,7 @@ class FlyingThings3DSubset(FlowDataset):
                     for i in range(len(images)):
                         image_indexer[ Path(images[i]).stem ] = i
                     flows = sorted(glob(osp.join(fdir, '*.flo')) )
+                    logfile.log('len', len(flows))
                     for i in range(len(flows)-1):
                         flow_name = Path(flows[i]).stem
                         j = image_indexer[flow_name]
