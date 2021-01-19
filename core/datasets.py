@@ -121,11 +121,11 @@ class MpiSintel(FlowDataset):
 
 
 class FlyingChairs(FlowDataset):
-    def __init__(self, aug_params=None, split='train', root='datasets/FlyingChairs_release/data'):
+    def __init__(self, aug_params=None, split='training', root='datasets/FlyingChairs_release/data'):
         super(FlyingChairs, self).__init__(aug_params)
 
-        images = sorted(glob(osp.join(root, '*.ppm')))
-        flows = sorted(glob(osp.join(root, '*.flo')))
+        images = sorted(glob(osp.join(root, '*img*.png')))
+        flows = sorted(glob(osp.join(root, '*flow.flo')))
         assert (len(images)//2 == len(flows))
 
         split_list = np.loadtxt('chairs_split.txt', dtype=np.int32)
