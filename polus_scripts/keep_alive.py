@@ -27,7 +27,7 @@ if os.path.exists(file_path):
 
 while True:
     print(datestr() + ' submit')
-    subp_bash('./submit.sh')
+    subp_bash('./polus_scripts/submit.sh')
     print('wait...')
     while not os.path.exists(file_path):
         time.sleep(5)
