@@ -21,3 +21,6 @@ python -u train.py --name raft-sintel --stage sintel --validation sintel --resto
 
 Train on Things3DSubset
 python -u train.py --name raft-things --stage things --validation sintel --restore_ckpt checkpoints/raft-chairs.pth --gpus 0 1 --num_steps 100000 --batch_size 4 --lr 0.000125 --image_size 400 720 --wdecay 0.0001
+
+Train on FlyingChairs
+python -u train.py --name raft-chairs --stage chairs --validation chairs --gpus 0 --num_steps 240000 --batch_size 4 --lr 0.00025 --image_size 368 496 --wdecay 0.0001
