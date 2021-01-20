@@ -7,7 +7,7 @@ class FlowHead(nn.Module):
     def __init__(self, input_dim=128, hidden_dim=256):
         super(FlowHead, self).__init__()
         self.conv1 = nn.Conv2d(input_dim, hidden_dim, 3, padding=1)
-        self.conv2 = nn.Conv2d(hidden_dim, 2, 3, padding=1)
+        self.conv2 = nn.Conv2d(hidden_dim, 4, 3, padding=1) # in_channels, out_chanels, ...
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
@@ -82,9 +82,9 @@ class BasicMotionEncoder(nn.Module):
         cor_planes = args.corr_levels * (2*args.corr_radius + 1)**2
         self.convc1 = nn.Conv2d(cor_planes, 256, 1, padding=0)
         self.convc2 = nn.Conv2d(256, 192, 3, padding=1)
-        self.convf1 = nn.Conv2d(2, 128, 7, padding=3)
+        self.convf1 = nn.Conv2d(4, 128, 7, padding=3) # in, out, radius
         self.convf2 = nn.Conv2d(128, 64, 3, padding=1)
-        self.conv = nn.Conv2d(64+192, 128-2, 3, padding=1)
+        self.conv = nn.Conv2d(64+192, 128-4, 3, padding=1)
 
     def forward(self, flow, corr):
         cor = F.relu(self.convc1(corr))
@@ -130,6 +130,9 @@ class BasicUpdateBlock(nn.Module):
 
         net = self.gru(net, inp)
         delta_flow = self.flow_head(net)
+        #delta_flow = delta[:, :2] # B, C, H, W
+        #delta_occ = delta[:, 2:]
+        
 
         # scale mask to balence gradients
         mask = .25 * self.mask(net)

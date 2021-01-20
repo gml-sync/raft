@@ -23,6 +23,9 @@ def load_image(imfile):
     img = torch.from_numpy(img).permute(2, 0, 1).float()
     return img[None].to(DEVICE)
 
+def show(img):
+    cv2.imshow('image', img[:, :, [2,1,0]]/255.0)
+    cv2.waitKey()
 
 def viz(img, flo):
     img = img[0].permute(1,2,0).cpu().numpy()

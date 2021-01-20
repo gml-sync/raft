@@ -54,6 +54,8 @@ class RAFT(nn.Module):
             self.fnet = BasicEncoder(output_dim=256, norm_fn='instance', dropout=args.dropout)        
             self.cnet = BasicEncoder(output_dim=hdim+cdim, norm_fn='batch', dropout=args.dropout)
             self.update_block = BasicUpdateBlock(self.args, hidden_dim=hdim)
+        
+        self.occ_sigmoid = nn.Sigmoid()
 
     def freeze_bn(self):
         for m in self.modules():
@@ -68,6 +70,14 @@ class RAFT(nn.Module):
 
         # optical flow computed as difference: flow = coords1 - coords0
         return coords0, coords1
+    
+    def initialize_occ(self, img):
+        """ Two channels for occlusions """
+        N, C, H, W = img.shape
+        occ_false = coords_grid(N, H//8, W//8).to(img.device)
+        occ_true = coords_grid(N, H//8, W//8).to(img.device)
+
+        return occ_false, occ_true
 
     def upsample_flow(self, flow, mask):
         """ Upsample flow field [H/8, W/8, 2] -> [H, W, 2] using convex combination """
@@ -114,31 +124,47 @@ class RAFT(nn.Module):
             inp = torch.relu(inp)
 
         coords0, coords1 = self.initialize_flow(image1)
+        occ_false, occ_true = self.initialize_occ(image1)
+        print('coords0 shape', coords0.shape, 'dtype', coords0.dtype)
+        #print('occ_true shape', occ_true.shape, 'dtype', occ_true.dtype)
 
         if flow_init is not None:
             coords1 = coords1 + flow_init
 
         flow_predictions = []
+        occ_predictions = []
         for itr in range(iters):
             coords1 = coords1.detach()
             corr = corr_fn(coords1) # index correlation volume
 
             flow = coords1 - coords0
+            print('flow shape', coords0.shape, 'dtype', coords0.dtype)
             with autocast(enabled=self.args.mixed_precision):
-                net, up_mask, delta_flow = self.update_block(net, inp, corr, flow)
+                flow_occ = torch.cat([flow, occ_true], dim=1)
+                net, up_mask, delta_flow_occ = \
+                    self.update_block(net, inp, corr, flow_occ)
+                delta_flow = delta_flow_occ[:, :2]
+                delta_occ = delta_flow_occ[:, 2:]
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
+            #delta_occ = delta_occ[:, 0:1] # Second layer goes to trash
+            occ_true = self.occ_sigmoid(occ_true + delta_occ)
 
             # upsample predictions
+            # HOW DOES THIS WORK?
             if up_mask is None:
                 flow_up = upflow8(coords1 - coords0)
+                occ_up = upflow8(occ_true)
             else:
                 flow_up = self.upsample_flow(coords1 - coords0, up_mask)
+                occ_up = self.upsample_flow(occ_true, up_mask)
+            occ_up = occ_up[:, 0]
             
             flow_predictions.append(flow_up)
+            occ_predictions.append(occ_up)
 
         if test_mode:
             return coords1 - coords0, flow_up
             
-        return flow_predictions
+        return flow_predictions, occ_predictions

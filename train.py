@@ -52,27 +52,51 @@ MAX_FLOW = 400
 SUM_FREQ = 100
 VAL_FREQ = 5000
 
+DEVICE = 'cpu'
 
-def sequence_loss(flow_preds, flow_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
+
+def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     """ Loss function defined over sequence of flow predictions """
 
     n_predictions = len(flow_preds)    
     flow_loss = 0.0
+    occ_loss = 0.0
 
     # exlude invalid pixels and extremely large diplacements
     mag = torch.sum(flow_gt**2, dim=1).sqrt()
     valid = (valid >= 0.5) & (mag < max_flow)
 
     for i in range(n_predictions):
+        print('seq', flow_preds[i].shape, flow_gt.shape)
         i_weight = gamma**(n_predictions - i - 1)
         i_loss = (flow_preds[i] - flow_gt).abs()
         flow_loss += i_weight * (valid[:, None] * i_loss).mean()
+        
+        print('seq', occ_preds[i].shape, occ_gt.shape)
+        i_loss = (occ_preds[i] - occ_gt).abs()
+        occ_loss += i_weight * (valid[:, None] * i_loss).mean()
 
     epe = torch.sum((flow_preds[-1] - flow_gt)**2, dim=1).sqrt()
     epe = epe.view(-1)[valid.view(-1)]
+    
+    # precision=tp/(tp+fp), recall=tp/(tp+fn)
+    occ_pred_bin = occ_preds[-1] > 0.5
+    occ_gt_bin = occ_gt > 0.5
+    intersect = torch.sum(occ_pred_bin * occ_gt_bin)
+    pred = torch.sum(occ_pred_bin)
+    gt = torch.sum(occ_gt_bin)
+    
+    f1 = 0
+    if intersect != 0 and pred != 0 and gt != 0:
+        prec = intersect / pred
+        recall = intersect / gt
+        f1 = 2 / (1 / prec + 1 / recall)
+    
+    flow_loss = flow_loss + occ_loss
 
     metrics = {
         'epe': epe.mean().item(),
+        'f1': f1.item(),
         '1px': (epe < 1).float().mean().item(),
         '3px': (epe < 3).float().mean().item(),
         '5px': (epe < 5).float().mean().item(),
@@ -149,21 +173,21 @@ def train(args):
     model = nn.DataParallel(RAFT(args))
     logfile.log("Parameter Count: %d" % count_parameters(model))
 
+    # Load model, optimizer, scheduler
     total_steps = 0
     optimizer = None
     scheduler = None
     batch_start = 0
-    
     is_model_loaded = False
 
     if args.restore_ckpt is not None:
         path = checkpoint_load_path(args.restore_ckpt)
         if Path(path).exists():
             if 0:
-                checkpoint = torch.load(path, map_location=torch.device('cpu'))
+                checkpoint = torch.load(path, map_location=torch.device(DEVICE))
                 model.load_state_dict(checkpoint, strict=False)
             if 1:
-                checkpoint = torch.load(path)
+                checkpoint = torch.load(path, map_location=torch.device(DEVICE))
                 if 'model' in checkpoint: # New format, full save
                     total_steps = checkpoint['total_steps']
                     model = checkpoint['model']
@@ -185,8 +209,7 @@ def train(args):
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
                 exit()
-
-    model.cuda()
+    model.to(DEVICE)
 
     if not is_model_loaded:
         model.train()
@@ -209,7 +232,6 @@ def train(args):
     
     VAL_FREQ = 5000
     STEPS = 3000
-    add_noise = True
 
     session_steps = 0
     should_keep_training = True
@@ -222,16 +244,17 @@ def train(args):
             #    continue
 
             optimizer.zero_grad()
-            image1, image2, flow, valid = [x.cuda() for x in data_blob]
+            image1, image2, flow, occ, valid = [x.to(DEVICE) for x in data_blob]
 
             if args.add_noise:
                 stdv = np.random.uniform(0.0, 5.0)
-                image1 = (image1 + stdv * torch.randn(*image1.shape).cuda()).clamp(0.0, 255.0)
-                image2 = (image2 + stdv * torch.randn(*image2.shape).cuda()).clamp(0.0, 255.0)
+                image1 = (image1 + stdv * torch.randn(*image1.shape).to(DEVICE)).clamp(0.0, 255.0)
+                image2 = (image2 + stdv * torch.randn(*image2.shape).to(DEVICE)).clamp(0.0, 255.0)
 
-            flow_predictions = model(image1, image2, iters=args.iters)            
+            flow_predictions, occ_predictions = model(image1, image2, iters=args.iters)
 
-            loss, metrics = sequence_loss(flow_predictions, flow, valid, args.gamma)
+            loss, metrics = sequence_loss(flow_predictions, flow, 
+                                          occ_predictions, occ, valid, args.gamma)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
@@ -272,8 +295,10 @@ def train(args):
                 if args.stage != 'chairs':
                     model.module.freeze_bn()
             
-            #if total_steps > 1:
-            #    return
+            from demo import viz
+            flow_up = occ_predictions[-1].detach()
+            viz(image1, flow_up)
+            return
             
             total_steps += 1
 
