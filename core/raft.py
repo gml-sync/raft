@@ -159,7 +159,7 @@ class RAFT(nn.Module):
             else:
                 flow_up = self.upsample_flow(coords1 - coords0, up_mask)
                 occ_up = self.upsample_flow(occ_true, up_mask)
-            occ_up = occ_up[:, 0]
+            occ_up = occ_up[:, 0:1]
             
             flow_predictions.append(flow_up)
             occ_predictions.append(occ_up)

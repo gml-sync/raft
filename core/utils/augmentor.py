@@ -87,8 +87,7 @@ class FlowAugmentor:
             img2 = cv2.resize(img2, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
             flow = cv2.resize(flow, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
             flow = flow * [scale_x, scale_y]
-            occ = cv2.resize(flow, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
-            occ = occ * [scale_x, scale_y]
+            occ = cv2.resize(occ, None, fx=scale_x, fy=scale_y, interpolation=cv2.INTER_LINEAR)
 
         if self.do_flip:
             if np.random.rand() < self.h_flip_prob: # h-flip

@@ -52,7 +52,7 @@ MAX_FLOW = 400
 SUM_FREQ = 100
 VAL_FREQ = 5000
 
-DEVICE = 'cuda'
+DEVICE = 'cpu'
 
 
 def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
@@ -67,12 +67,12 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     valid = (valid >= 0.5) & (mag < max_flow)
 
     for i in range(n_predictions):
-        print('seq', flow_preds[i].shape, flow_gt.shape)
+        print('seq flow', flow_preds[i].shape, flow_gt.shape)
         i_weight = gamma**(n_predictions - i - 1)
         i_loss = (flow_preds[i] - flow_gt).abs()
         flow_loss += i_weight * (valid[:, None] * i_loss).mean()
         
-        print('seq', occ_preds[i].shape, occ_gt.shape)
+        print('seq occ', occ_preds[i].shape, occ_gt.shape)
         i_loss = (occ_preds[i] - occ_gt).abs()
         occ_loss += i_weight * (valid[:, None] * i_loss).mean()
 
