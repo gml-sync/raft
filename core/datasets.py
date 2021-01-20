@@ -171,6 +171,23 @@ class FlyingChairs(FlowDataset):
                 self.flow_list += [ flows[i] ]
                 self.image_list += [ [images[2*i], images[2*i+1]] ]
 
+class FlyingChairsOcc(FlowDataset):
+    def __init__(self, aug_params=None, split='training', root='datasets/FlyingChairs_release/data'):
+        super(FlyingChairs, self).__init__(aug_params)
+
+        images = sorted(glob(osp.join(root, '*img*.png')))
+        flows = sorted(glob(osp.join(root, '*flow.flo')))
+        occs = sorted(glob(osp.join(root, '*occ1.png')))
+        assert (len(images)//2 == len(flows))
+
+        split_list = np.loadtxt('chairs_split.txt', dtype=np.int32)
+        for i in range(len(flows)):
+            xid = split_list[i]
+            if (split=='training' and xid==1) or (split=='validation' and xid==2):
+                self.flow_list += [ flows[i] ]
+                self.occ_list += [ occs[i] ]
+                self.image_list += [ [images[2*i], images[2*i+1]] ]
+
 
 class FlyingThings3D(FlowDataset):
     def __init__(self, aug_params=None, root='datasets/FlyingThings3D', dstype='frames_cleanpass'):
@@ -268,7 +285,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
 
     if args.stage == 'chairs':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.1, 'max_scale': 1.0, 'do_flip': True}
-        train_dataset = FlyingChairs(aug_params, split='training')
+        train_dataset = FlyingChairsOcc(aug_params, split='training')
     
     elif args.stage == 'things':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.4, 'max_scale': 0.8, 'do_flip': True}
@@ -279,7 +296,6 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
 
     elif args.stage == 'sintel':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.6, 'do_flip': True}
-        #aug_params = None
         things = FlyingThings3D(aug_params, dstype='frames_cleanpass')
         sintel_clean = MpiSintelOcc(aug_params, split='training', dstype='clean')
         sintel_final = MpiSintelOcc(aug_params, split='training', dstype='final')        
