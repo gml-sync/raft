@@ -295,10 +295,10 @@ def train(args):
                 if args.stage != 'chairs':
                     model.module.freeze_bn()
             
-            from demo import viz
-            flow_up = occ_predictions[-1].detach()
-            viz(image1, flow_up)
-            return
+            #from demo import viz
+            #flow_up = occ_predictions[-1].detach()
+            #viz(image1, flow_up)
+            #return
             
             total_steps += 1
 
