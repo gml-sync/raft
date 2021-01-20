@@ -78,6 +78,8 @@ class FlowDataset(data.Dataset):
         img2 = np.array(img2).astype(np.uint8)
 
         arr_info(occ)
+        logfile.log(occ[0, 0])
+        logfile.log(occ)
         # grayscale images
         if len(img1.shape) == 2:
             img1 = np.tile(img1[...,None], (1, 1, 3))
