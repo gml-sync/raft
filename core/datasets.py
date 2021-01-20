@@ -173,7 +173,7 @@ class FlyingChairs(FlowDataset):
 
 class FlyingChairsOcc(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/FlyingChairs_release/data'):
-        super(FlyingChairs, self).__init__(aug_params)
+        super(FlyingChairsOcc, self).__init__(aug_params)
 
         images = sorted(glob(osp.join(root, '*img*.png')))
         flows = sorted(glob(osp.join(root, '*flow.flo')))

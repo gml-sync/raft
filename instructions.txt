@@ -27,3 +27,4 @@ python -u train.py --name raft-chairs --stage chairs --validation chairs --gpus 
 
 Debug launch CPU (sintel)
 python -u train.py --name raft-sintel --stage sintel --validation sintel --restore_ckpt checkpoints/raft-sintel.pth --num_steps 100000 --batch_size 1 --lr 0.000125 --image_size 368 768 --wdecay 0.00001 --gamma=0.85
+python -u train.py --name raft-sintel --stage sintel --validation sintel --num_steps 100000 --batch_size 1 --lr 0.000125 --image_size 368 768 --wdecay 0.00001 --gamma=0.85
