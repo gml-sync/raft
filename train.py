@@ -278,22 +278,22 @@ def train(args):
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
 
-            if total_steps % VAL_FREQ == VAL_FREQ - 1:
-                logfile.log('Validation. Step', total_steps)
-                results = {}
-                for val_dataset in args.validation:
-                    if val_dataset == 'chairs':
-                        results.update(evaluate.validate_chairs(model.module))
-                    elif val_dataset == 'sintel':
-                        results.update(evaluate.validate_sintel(model.module))
-                    elif val_dataset == 'kitti':
-                        results.update(evaluate.validate_kitti(model.module))
+            # if total_steps % VAL_FREQ == VAL_FREQ - 1:
+            #     logfile.log('Validation. Step', total_steps)
+            #     results = {}
+            #     for val_dataset in args.validation:
+            #         if val_dataset == 'chairs':
+            #             results.update(evaluate.validate_chairs(model.module))
+            #         elif val_dataset == 'sintel':
+            #             results.update(evaluate.validate_sintel(model.module))
+            #         elif val_dataset == 'kitti':
+            #             results.update(evaluate.validate_kitti(model.module))
 
-                logger.write_dict(results)
+            #     logger.write_dict(results)
                 
-                model.train()
-                if args.stage != 'chairs':
-                    model.module.freeze_bn()
+            #     model.train()
+            #     if args.stage != 'chairs':
+            #         model.module.freeze_bn()
             
             #from demo import viz
             #flow_up = occ_predictions[-1].detach()
