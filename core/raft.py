@@ -125,7 +125,7 @@ class RAFT(nn.Module):
 
         coords0, coords1 = self.initialize_flow(image1)
         occ_false, occ_true = self.initialize_occ(image1)
-        print('coords0 shape', coords0.shape, 'dtype', coords0.dtype)
+        # print('coords0 shape', coords0.shape, 'dtype', coords0.dtype)
         #print('occ_true shape', occ_true.shape, 'dtype', occ_true.dtype)
 
         if flow_init is not None:
@@ -138,7 +138,7 @@ class RAFT(nn.Module):
             corr = corr_fn(coords1) # index correlation volume
 
             flow = coords1 - coords0
-            print('flow shape', coords0.shape, 'dtype', coords0.dtype)
+            # print('flow shape', coords0.shape, 'dtype', coords0.dtype)
             with autocast(enabled=self.args.mixed_precision):
                 flow_occ = torch.cat([flow, occ_true], dim=1)
                 net, up_mask, delta_flow_occ = \

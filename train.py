@@ -67,12 +67,12 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     valid = (valid >= 0.5) & (mag < max_flow)
 
     for i in range(n_predictions):
-        print('seq flow', flow_preds[i].shape, flow_gt.shape)
+        # print('seq flow', flow_preds[i].shape, flow_gt.shape)
         i_weight = gamma**(n_predictions - i - 1)
         i_loss = (flow_preds[i] - flow_gt).abs()
         flow_loss += i_weight * (valid[:, None] * i_loss).mean()
         
-        print('seq occ', occ_preds[i].shape, occ_gt.shape)
+        # print('seq occ', occ_preds[i].shape, occ_gt.shape)
         i_loss = (occ_preds[i] - occ_gt).abs()
         occ_loss += i_weight * (valid[:, None] * i_loss).mean()
 
@@ -259,6 +259,7 @@ def train(args):
 
             loss, metrics = sequence_loss(flow_predictions, flow, 
                                           occ_predictions, occ, valid, args.gamma)
+            logfile.log(loss, metrics)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
