@@ -77,12 +77,14 @@ class FlowDataset(data.Dataset):
         img1 = np.array(img1).astype(np.uint8)
         img2 = np.array(img2).astype(np.uint8)
 
-        #arr_info(occ)
-        #logfile.log(occ[0, 0])
+        arr_info('p1', occ)
+        logfile.log(occ)
         #logfile.log(occ)
         if len(occ.shape) > 2:
-            bool_mask = (occ[:, :, 0] > 128).astype(np.uint8)
-            occ = bool_mask.astype(np.uint8)
+            occ = (occ[:, :, 0] > 128).astype(np.uint8)
+        arr_info('p2', occ)
+        logfile.log(occ)
+        
         # grayscale images
         if len(img1.shape) == 2:
             img1 = np.tile(img1[...,None], (1, 1, 3))
@@ -96,6 +98,8 @@ class FlowDataset(data.Dataset):
                 img1, img2, flow, valid = self.augmentor(img1, img2, flow, valid)
             else:
                 img1, img2, flow, occ = self.augmentor(img1, img2, flow, occ)
+        arr_info('p3', occ)
+        logfile.log(occ)
         occ = occ[:, :, np.newaxis] # [H, W, C]
 
         img1 = torch.from_numpy(img1).permute(2, 0, 1).float()

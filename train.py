@@ -80,23 +80,27 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     epe = epe.view(-1)[valid.view(-1)]
     
     # precision=tp/(tp+fp), recall=tp/(tp+fn)
-    occ_pred_bin = occ_preds[-1] > 0.5
-    occ_gt_bin = occ_gt > 0.5
-    intersect = torch.sum(occ_pred_bin * occ_gt_bin)
-    pred = torch.sum(occ_pred_bin)
-    gt = torch.sum(occ_gt_bin)
+    # occ_pred_bin = occ_preds[-1] > 0.5
+    # occ_gt_bin = occ_gt > 0.5
+    # intersect = torch.sum(occ_pred_bin * occ_gt_bin)
+    # pred = torch.sum(occ_pred_bin)
+    # gt = torch.sum(occ_gt_bin)
     
-    f1 = 0
-    if intersect != 0 and pred != 0 and gt != 0:
-        prec = intersect / pred
-        recall = intersect / gt
-        f1 = 2 / (1 / prec + 1 / recall)
+    
+    # f1 = 0
+    # if intersect != 0 and pred != 0 and gt != 0:
+    #     prec = intersect / pred
+    #     recall = intersect / gt
+    #     f1 = 2 / (1 / prec + 1 / recall)
+    f1 = torch.sum((occ_preds[-1] - occ_gt)**2, dim=1).sqrt()
+    f1 = f1.view(-1)[valid.view(-1)]
+    
     
     flow_loss = flow_loss + occ_loss
 
     metrics = {
         'epe': epe.mean().item(),
-        'f1': f1,
+        'f1': f1.mean().item(),
         '1px': (epe < 1).float().mean().item(),
         '3px': (epe < 3).float().mean().item(),
         '5px': (epe < 5).float().mean().item(),
@@ -309,6 +313,7 @@ def train(args):
             if total_steps > args.num_steps:
                 should_keep_training = False
                 break
+            exit()
 
 
 if __name__ == '__main__':
