@@ -56,6 +56,8 @@ VAL_FREQ = 5000
 
 DEVICE = 'cuda'
 
+def arr_info(img):
+    logfile.log(img.shape, img.dtype, img.min(), img.max())
 
 def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     """ Loss function defined over sequence of flow predictions """
@@ -286,10 +288,15 @@ def train(args):
                 checkpoint_save_path(PATH, save_json=True)
 
                 # save example images
-                io.imsave('runs/{}_img1.png'.format(i_batch), image1.cpu().numpy()[0])
-                io.imsave('runs/{}_img2.png'.format(i_batch), image2.cpu().numpy()[0])
-                io.imsave('runs/{}_occpred.png'.format(i_batch), occ_predictions.cpu().numpy()[-1][0])
-                io.imsave('runs/{}_occgt.png'.format(i_batch), occ.cpu().numpy()[0])
+                i1, i2, occpred, occgt = [x.cpu().numpy()[0] for x in [image1, image2, occ_prediction[-1], occ]]
+                arr_info(i1)
+                arr_info(i2)
+                arr_info(occpred)
+                arr_info(occgt)
+                io.imsave('runs/{}_img1.png'.format(i_batch), i1)
+                io.imsave('runs/{}_img2.png'.format(i_batch), i2)
+                io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
+                io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
 
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
