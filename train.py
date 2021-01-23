@@ -288,7 +288,7 @@ def train(args):
                 checkpoint_save_path(PATH, save_json=True)
 
                 # save example images
-                i1, i2, occpred, occgt = [x.cpu().numpy()[0] for x in [image1, image2, occ_predictions[-1], occ]]
+                i1, i2, occpred, occgt = [x.detach().cpu().numpy()[0] for x in [image1, image2, occ_predictions[-1], occ]]
                 arr_info(i1)
                 arr_info(i2)
                 arr_info(occpred)
