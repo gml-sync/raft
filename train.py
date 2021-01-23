@@ -286,10 +286,10 @@ def train(args):
                 checkpoint_save_path(PATH, save_json=True)
 
                 # save example images
-                io.imsave('runs/{}_img1.png'.format(i_batch), image1[0])
-                io.imsave('runs/{}_img2.png'.format(i_batch), image2[0])
-                io.imsave('runs/{}_occpred.png'.format(i_batch), occ_predictions[-1][0])
-                io.imsave('runs/{}_occgt.png'.format(i_batch), occ[0])
+                io.imsave('runs/{}_img1.png'.format(i_batch), image1.cpu().numpy()[0])
+                io.imsave('runs/{}_img2.png'.format(i_batch), image2.cpu().numpy()[0])
+                io.imsave('runs/{}_occpred.png'.format(i_batch), occ_predictions.cpu().numpy()[-1][0])
+                io.imsave('runs/{}_occgt.png'.format(i_batch), occ.cpu().numpy()[0])
 
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
