@@ -44,6 +44,8 @@ from pathlib import Path
 import time
 from time import sleep
 
+from skimage import io
+
 logfile.set_logfile('runs/stdout.log')
 
 # exclude extremely large displacements
@@ -204,7 +206,7 @@ def train(args):
                     model.load_state_dict(checkpoint, strict=False)
                     logfile.log('Loaded model without steps')
 
-                if 1: # Save only weights without state
+                if 0: # Save only weights without state
                     PATH = 'checkpoints/01.pth'
                     torch.save(model.state_dict(), PATH)
                     exit()
@@ -282,6 +284,12 @@ def train(args):
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
+
+                # save example images
+                io.imsave('runs/{}_img1.png'.format(i_batch), image1[0])
+                io.imsave('runs/{}_img2.png'.format(i_batch), image2[0])
+                io.imsave('runs/{}_occpred.png'.format(i_batch), occ_predictions[-1][0])
+                io.imsave('runs/{}_occgt.png'.format(i_batch), occ[0])
 
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
