@@ -54,8 +54,6 @@ MAX_FLOW = 400
 SUM_FREQ = 100
 VAL_FREQ = 5000
 
-DEVICE = 'cuda'
-
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
 
@@ -193,6 +191,8 @@ class Logger:
         self.writer.close()
 
 def train(args):
+    DEVICE = 'cuda'
+    
     if args.cpu:
         DEVICE = 'cpu'
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
