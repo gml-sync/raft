@@ -113,18 +113,27 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     f1 = torch.sum((occ_preds[-1] - occ_gt)**2, dim=1).sqrt()
     f1 = f1.view(-1)[valid.view(-1)]
     
-    
-    flow_loss = flow_loss + occ_loss
+    f_loss = flow_loss.detach()
+    o_loss = occ_loss.detach()
+    if (f_loss.data > o_loss.data).numpy:
+        f_l_w = 1
+        o_l_w = f_loss / o_loss
+    else:
+        f_l_w = o_loss / f_loss
+        o_l_w = 1
+
+    total_loss = (flow_loss * f_l_w + occ_loss * o_l_w) / (2 * flow_gt.size(0))
 
     metrics = {
         'epe': epe.mean().item(),
-        #'f1': f1.mean().item(),
+        'flow_loss': f_loss.data,
+        'occ_loss': o_loss.data,
         '1px': (epe < 1).float().mean().item(),
         '3px': (epe < 3).float().mean().item(),
         '5px': (epe < 5).float().mean().item(),
     }
 
-    return flow_loss, metrics
+    return total_loss, metrics
 
 
 def count_parameters(model):
