@@ -88,13 +88,13 @@ class BasicMotionEncoder(nn.Module):
 
     def forward(self, flow, corr):
         cor = F.relu(self.convc1(corr))
-        cor = F.relu(self.convc2(cor))
-        flo = F.relu(self.convf1(flow))
-        flo = F.relu(self.convf2(flo))
+        cor = F.relu(self.convc2(cor)) # out: 192
+        flo = F.relu(self.convf1(flow)) # in: 4, out: 128
+        flo = F.relu(self.convf2(flo)) # in: 128, out: 64
 
-        cor_flo = torch.cat([cor, flo], dim=1)
-        out = F.relu(self.conv(cor_flo))
-        return torch.cat([out, flow], dim=1)
+        cor_flo = torch.cat([cor, flo], dim=1) # channels: 192+64
+        out = F.relu(self.conv(cor_flo)) # in: 192+64, out:128-4
+        return torch.cat([out, flow], dim=1) # channels: 128
 
 class SmallUpdateBlock(nn.Module):
     def __init__(self, args, hidden_dim=96):

@@ -59,9 +59,22 @@ DEVICE = 'cuda'
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
 
+def f1_score_bal_loss(y_pred, y_true):
+    eps = 1e-8
+
+    tp = -(y_true * torch.log(y_pred + eps)).sum(dim=2).sum(dim=2).sum(dim=1)
+    fn = -((1 - y_true) * torch.log((1 - y_pred) + eps)).sum(dim=2).sum(dim=2).sum(dim=1)
+
+    denom_tp = y_true.sum(dim=2).sum(dim=2).sum(dim=1) + y_pred.sum(dim=2).sum(dim=2).sum(dim=1) + eps
+    denom_fn = (1 - y_true).sum(dim=2).sum(dim=2).sum(dim=1) + (1 - y_pred).sum(dim=2).sum(dim=2).sum(dim=1) + eps
+
+    return ((tp / denom_tp).sum() + (fn / denom_fn).sum()) * y_pred.size(2) * y_pred.size(3) * 0.5
+
 def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     """ Loss function defined over sequence of flow predictions """
 
+    occ_sigmoid = nn.Sigmoid()
+    
     n_predictions = len(flow_preds)    
     flow_loss = 0.0
     occ_loss = 0.0
@@ -77,8 +90,11 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
         flow_loss += i_weight * (valid[:, None] * i_loss).mean()
         
         # print('seq occ', occ_preds[i].shape, occ_gt.shape)
-        i_loss = (occ_preds[i] - occ_gt).abs()
-        occ_loss += i_weight * (valid[:, None] * i_loss).mean()
+        #i_loss = (occ_preds[i] - occ_gt).abs()
+        occ_pred = occ_sigmoid(occ_preds[i])
+        i_loss = f1_score_bal_loss(occ_pred, occ_gt)
+        #occ_loss += i_weight * (valid[:, None] * i_loss).mean()
+        occ_loss += i_weight * i_loss
 
     epe = torch.sum((flow_preds[-1] - flow_gt)**2, dim=1).sqrt()
     epe = epe.view(-1)[valid.view(-1)]
@@ -177,6 +193,8 @@ class Logger:
         self.writer.close()
 
 def train(args):
+    if args.cpu:
+        DEVICE = 'cpu'
     #model = nn.DataParallel(RAFT(args), device_ids=args.gpus)
     model = nn.DataParallel(RAFT(args))
     logfile.log("Parameter Count: %d" % count_parameters(model))
@@ -339,6 +357,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=6)
     parser.add_argument('--image_size', type=int, nargs='+', default=[384, 512])
     parser.add_argument('--gpus', type=int, nargs='+', default=[0,1])
+    parser.add_argument('--cpu', action='store_true', help='use only cpu')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
 
     parser.add_argument('--iters', type=int, default=12)

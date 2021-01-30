@@ -54,8 +54,6 @@ class RAFT(nn.Module):
             self.fnet = BasicEncoder(output_dim=256, norm_fn='instance', dropout=args.dropout)        
             self.cnet = BasicEncoder(output_dim=hdim+cdim, norm_fn='batch', dropout=args.dropout)
             self.update_block = BasicUpdateBlock(self.args, hidden_dim=hdim)
-        
-        self.occ_sigmoid = nn.Sigmoid()
 
     def freeze_bn(self):
         for m in self.modules():
@@ -125,8 +123,8 @@ class RAFT(nn.Module):
 
         coords0, coords1 = self.initialize_flow(image1)
         occ_false, occ_true = self.initialize_occ(image1)
-        # print('coords0 shape', coords0.shape, 'dtype', coords0.dtype)
         #print('occ_true shape', occ_true.shape, 'dtype', occ_true.dtype)
+        # occ_true shape torch.Size([1, 2, 46, 96]) dtype torch.float32
 
         if flow_init is not None:
             coords1 = coords1 + flow_init
@@ -143,13 +141,13 @@ class RAFT(nn.Module):
                 flow_occ = torch.cat([flow, occ_true], dim=1)
                 net, up_mask, delta_flow_occ = \
                     self.update_block(net, inp, corr, flow_occ)
-                delta_flow = delta_flow_occ[:, :2]
+                delta_flow = delta_flow_occ[:, :2] # [B, C, H, W]
                 delta_occ = delta_flow_occ[:, 2:]
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
             #delta_occ = delta_occ[:, 0:1] # Second layer goes to trash
-            occ_true = self.occ_sigmoid(occ_true + delta_occ)
+            occ_true = occ_true + delta_occ
 
             # upsample predictions
             # HOW DOES THIS WORK?
