@@ -100,11 +100,11 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     f1 = f1.view(-1)[valid.view(-1)]
     
     
-    flow_loss = flow_loss + occ_loss
+    #flow_loss = flow_loss + occ_loss
 
     metrics = {
         'epe': epe.mean().item(),
-        'f1': f1.mean().item(),
+        #'f1': f1.mean().item(),
         '1px': (epe < 1).float().mean().item(),
         '3px': (epe < 3).float().mean().item(),
         '5px': (epe < 5).float().mean().item(),
@@ -263,7 +263,7 @@ def train(args):
 
             loss, metrics = sequence_loss(flow_predictions, flow, 
                                           occ_predictions, occ, valid, args.gamma)
-            logfile.log(loss, metrics)
+            #logfile.log(loss, metrics)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)
@@ -289,15 +289,15 @@ def train(args):
 
                 # save example images
                 i1, i2, occpred, occgt = [x.detach()[0].permute(1,2,0).cpu().numpy() for x in [image1, image2, occ_predictions[-1], occ]]
-                arr_info(i1)
-                arr_info(i2)
-                arr_info(occpred)
-                arr_info(occgt)
-                io.imsave('runs/{}_img1.png'.format(i_batch), i1)
-                io.imsave('runs/{}_img2.png'.format(i_batch), i2)
-                io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
-                io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
-
+                # arr_info(i1) # (368, 496, 3) float32 0.0 255.0
+                # arr_info(occpred) # (368, 496, 1) float32 0.0 8.83106e-05
+                # arr_info(occgt) # (368, 496, 1) float32 0.0 1.0
+                
+                # io.imsave('runs/{}_img1.png'.format(i_batch), i1)
+                # io.imsave('runs/{}_img2.png'.format(i_batch), i2)
+                # io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
+                # io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
+            
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
             #     results = {}
@@ -314,11 +314,6 @@ def train(args):
             #     model.train()
             #     if args.stage != 'chairs':
             #         model.module.freeze_bn()
-            
-            #from demo import viz
-            #flow_up = occ_predictions[-1].detach()
-            #viz(image1, flow_up)
-            #return
             
             total_steps += 1
 

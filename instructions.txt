@@ -1,8 +1,10 @@
+===
+CPU-only for debug
 Do not create new environment!
 
 conda install pytorch=1.6.0 torchvision=0.7.0 torchaudio cpuonly -c pytorch
 conda install matplotlib tensorboard scipy opencv
-
+===
 
 pip install pytorch=1.6.0 torchvision=0.7.0 cudatoolkit=10.1 -c pytorch matplotlib tensorboard scipy opencv
 conda activate pytorch
