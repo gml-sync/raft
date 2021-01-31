@@ -49,7 +49,7 @@ class FlowAugmentor:
 
         return img1, img2
 
-    def eraser_transform(self, img1, img2, bounds=[50, 100]):
+    def eraser_transform(self, img1, img2, occ, bounds=[50, 100]):
         """ Occlusion augmentation """
 
         ht, wd = img1.shape[:2]
@@ -60,9 +60,11 @@ class FlowAugmentor:
                 y0 = np.random.randint(0, ht)
                 dx = np.random.randint(bounds[0], bounds[1])
                 dy = np.random.randint(bounds[0], bounds[1])
-                img2[y0:y0+dy, x0:x0+dx, :] = mean_color
+                img1[y0:y0+dy, x0:x0+dx, :] = mean_color # erase in img1
+                occ[y0:y0+dy, x0:x0+dx, :] = 1.0
+                
 
-        return img1, img2
+        return img1, img2, occ
 
     def spatial_transform(self, img1, img2, flow, occ):
         # randomly sample scale
@@ -114,7 +116,7 @@ class FlowAugmentor:
 
     def __call__(self, img1, img2, flow, occ):
         img1, img2 = self.color_transform(img1, img2)
-        img1, img2 = self.eraser_transform(img1, img2)
+        img1, img2, occ = self.eraser_transform(img1, img2, occ)
         img1, img2, flow, occ = self.spatial_transform(img1, img2, flow, occ)
 
         img1 = np.ascontiguousarray(img1)
