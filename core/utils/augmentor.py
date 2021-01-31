@@ -61,7 +61,7 @@ class FlowAugmentor:
                 dx = np.random.randint(bounds[0], bounds[1])
                 dy = np.random.randint(bounds[0], bounds[1])
                 img1[y0:y0+dy, x0:x0+dx, :] = mean_color # erase in img1
-                occ[y0:y0+dy, x0:x0+dx, :] = 1.0
+                occ[y0:y0+dy, x0:x0+dx] = 1.0
                 
 
         return img1, img2, occ
