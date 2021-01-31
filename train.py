@@ -320,10 +320,10 @@ def train(args):
                 # arr_info(occpred) # (368, 496, 1) float32 0.0 8.83106e-05
                 # arr_info(occgt) # (368, 496, 1) float32 0.0 1.0
                 
-                io.imsave('runs/{}_img1.png'.format(i_batch), i1)
-                io.imsave('runs/{}_img2.png'.format(i_batch), i2)
-                io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
-                io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
+                # io.imsave('runs/{}_img1.png'.format(i_batch), i1)
+                # io.imsave('runs/{}_img2.png'.format(i_batch), i2)
+                # io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
+                # io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
             
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
