@@ -72,8 +72,8 @@ class RAFT(nn.Module):
     def initialize_occ(self, img):
         """ Two channels for occlusions """
         N, C, H, W = img.shape
-        occ_false = torch.zeros((N, 2, H//8, W//8)).to(img.device)
-        occ_true = torch.zeros((N, 2, H//8, W//8)).to(img.device)
+        occ_false = torch.zeros((N, 2, H//8, W//8)).float().to(img.device)
+        occ_true = torch.zeros((N, 2, H//8, W//8)).float().to(img.device)
 
         return occ_false, occ_true
 
@@ -154,8 +154,8 @@ class RAFT(nn.Module):
             else:
                 flow_up = self.upsample_flow(coords1 - coords0, up_mask)
                 occ_up = self.upsample_flow(occ_true, up_mask_occ)
-            
-            occ_up = occ_up[:, 0:1] # second layer goes to trash
+
+            occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
             
             flow_predictions.append(flow_up)
             occ_predictions.append(occ_up)
