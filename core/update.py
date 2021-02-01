@@ -122,21 +122,23 @@ class BasicUpdateBlock(nn.Module):
         self.mask = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(256, 64*9, 1, padding=0))
+            nn.Conv2d(256, 64*9*2, 1, padding=0)) # output: [64*9 flow, 64*9 occ]
 
     def forward(self, net, inp, corr, flow, upsample=True):
         motion_features = self.encoder(flow, corr)
         inp = torch.cat([inp, motion_features], dim=1)
 
         net = self.gru(net, inp)
-        delta_flow = self.flow_head(net)
-        #delta_flow = delta[:, :2] # B, C, H, W
-        #delta_occ = delta[:, 2:]
+        delta_flow_occ = self.flow_head(net) # net dim: 128
+        delta_flow = delta_flow_occ[:, :2] # [B, C, H, W]
+        delta_occ = delta_flow_occ[:, 2:]
         
 
         # scale mask to balence gradients
         mask = .25 * self.mask(net)
-        return net, mask, delta_flow
+        mask_flow = mask[:, :64*9]
+        mask_occ = mask[:, 64*9:]
+        return net, mask_flow, mask_occ, delta_flow, delta_occ
 
 
 

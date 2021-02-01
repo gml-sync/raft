@@ -72,8 +72,8 @@ class RAFT(nn.Module):
     def initialize_occ(self, img):
         """ Two channels for occlusions """
         N, C, H, W = img.shape
-        occ_false = coords_grid(N, H//8, W//8).to(img.device)
-        occ_true = coords_grid(N, H//8, W//8).to(img.device)
+        occ_false = torch.zeros((N, 2, H//8, W//8)).to(img.device)
+        occ_true = torch.zeros((N, 2, H//8, W//8)).to(img.device)
 
         return occ_false, occ_true
 
@@ -139,14 +139,11 @@ class RAFT(nn.Module):
             # print('flow shape', coords0.shape, 'dtype', coords0.dtype)
             with autocast(enabled=self.args.mixed_precision):
                 flow_occ = torch.cat([flow, occ_true], dim=1)
-                net, up_mask, delta_flow_occ = \
+                net, up_mask, up_mask_occ, delta_flow, delta_occ = \
                     self.update_block(net, inp, corr, flow_occ)
-                delta_flow = delta_flow_occ[:, :2] # [B, C, H, W]
-                delta_occ = delta_flow_occ[:, 2:]
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
-            #delta_occ = delta_occ[:, 0:1] # Second layer goes to trash
             occ_true = occ_true + delta_occ
 
             # upsample predictions
@@ -156,8 +153,9 @@ class RAFT(nn.Module):
                 occ_up = upflow8(occ_true)
             else:
                 flow_up = self.upsample_flow(coords1 - coords0, up_mask)
-                occ_up = self.upsample_flow(occ_true, up_mask)
-            occ_up = occ_up[:, 0:1]
+                occ_up = self.upsample_flow(occ_true, up_mask_occ)
+            
+            occ_up = occ_up[:, 0:1] # second layer goes to trash
             
             flow_predictions.append(flow_up)
             occ_predictions.append(occ_up)
