@@ -252,7 +252,7 @@ def train(args):
                     model.load_state_dict(checkpoint, strict=False)
                     logfile.log('Loaded model without steps')
 
-                if 1: # Save only weights without state
+                if 0: # Save only weights without state
                     PATH = 'checkpoints/01.pth'
                     torch.save(model.state_dict(), PATH)
                     exit()
