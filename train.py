@@ -57,6 +57,23 @@ VAL_FREQ = 5000
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
 
+
+# Must check this (from IRR-PWC)
+# def f1_score(y_true, y_pred):
+#     return fbeta_score(y_true, y_pred, 1)
+
+# def fbeta_score(y_true, y_pred, beta, eps=1e-8):
+#     beta2 = beta ** 2
+
+#     y_pred = y_pred.float()
+#     y_true = y_true.float()
+
+#     true_positive = (y_pred * y_true).sum(dim=2).sum(dim=2).sum(dim=1)
+#     precision = true_positive / (y_pred.sum(dim=2).sum(dim=2).sum(dim=1) + eps)
+#     recall = true_positive / (y_true.sum(dim=2).sum(dim=2) + eps)
+
+#     return torch.mean(precision * recall / (precision * beta2 + recall + eps) * (1 + beta2))
+
 def f1_score_bal_loss(y_pred, y_true):
     eps = 1e-8
 
