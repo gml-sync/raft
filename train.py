@@ -293,7 +293,7 @@ def train(args):
         for i_batch, data_blob in enumerate(train_loader):
             image_index = data_blob[-1]
             data_blob = data_blob[:len(data_blob) - 1]
-            logfile.log('Batch number: %d. Image index: %d' % (i_batch, image_index))
+            logfile.log('Batch number: %d' % i_batch, 'Image index:', image_index)
             #if i_batch < batch_start: # Continue from saved batch number
             #    continue
 
