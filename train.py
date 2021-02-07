@@ -336,6 +336,7 @@ def train(args):
                 # arr_info(i1) # (368, 496, 3) float32 0.0 255.0
                 # arr_info(occpred) # (368, 496, 1) float32 0.0 8.83106e-05
                 # arr_info(occgt) # (368, 496, 1) float32 0.0 1.0
+                logfile.log(metrics)
                 
                 io.imsave('runs/{}_img1.png'.format(i_batch), i1)
                 io.imsave('runs/{}_img2.png'.format(i_batch), i2)
