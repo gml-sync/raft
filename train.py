@@ -216,6 +216,9 @@ class Logger:
     def close(self):
         self.writer.close()
 
+def contains_nans(tensor):
+    return torch.isnan(tensor).any()
+
 def train(args):
     DEVICE = 'cuda'
     
@@ -299,6 +302,11 @@ def train(args):
 
             optimizer.zero_grad()
             image1, image2, flow, occ, valid = [x.to(DEVICE) for x in data_blob]
+
+            # if contains nan, then loss will be undefined
+            if True in [contains_nans(x) for x in [image1, image2, flow, occ]]:
+                logfile.log('Skip batch, NaN found!')
+                continue
 
             if args.add_noise:
                 stdv = np.random.uniform(0.0, 5.0)
