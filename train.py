@@ -300,9 +300,6 @@ def train(args):
             optimizer.zero_grad()
             image1, image2, flow, occ, valid = [x.to(DEVICE) for x in data_blob]
 
-            arr_info(image1)
-            arr_info(occ)
-
             if args.add_noise:
                 stdv = np.random.uniform(0.0, 5.0)
                 image1 = (image1 + stdv * torch.randn(*image1.shape).to(DEVICE)).clamp(0.0, 255.0)
