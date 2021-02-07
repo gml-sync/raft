@@ -291,7 +291,9 @@ def train(args):
 
         logfile.log('Start training from batch number %d' % batch_start)
         for i_batch, data_blob in enumerate(train_loader):
-            logfile.log('Batch number: %d' % i_batch)
+            image_index = data_blob[-1]
+            data_blob = data_blob[:len(data_blob) - 1]
+            logfile.log('Batch number: %d. Image index: %d' % i_batch % image_index)
             #if i_batch < batch_start: # Continue from saved batch number
             #    continue
 
@@ -310,7 +312,7 @@ def train(args):
 
             loss, metrics = sequence_loss(flow_predictions, flow, 
                                           occ_predictions, occ, valid, args.gamma)
-            logfile.log(loss, metrics)
+            #logfile.log(loss, metrics)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             torch.nn.utils.clip_grad_norm_(model.parameters(), args.clip)

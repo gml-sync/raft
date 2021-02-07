@@ -114,7 +114,7 @@ class FlowDataset(data.Dataset):
         else:
             valid = (flow[0].abs() < 1000) & (flow[1].abs() < 1000)
 
-        return img1, img2, flow, occ, valid.float()
+        return img1, img2, flow, occ, valid.float(), index
 
 
     def __rmul__(self, v):
