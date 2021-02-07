@@ -80,7 +80,8 @@ class FlowDataset(data.Dataset):
         # arr_info(occ)
         # logfile.log('p1', occ)
         if len(occ.shape) > 2:
-            occ = (occ[:, :, 0] > 128).astype(np.uint8)
+            occ = occ[:, :, 0]
+        occ = (occ > 128).astype(np.uint8) # 0-255 -> 0 or 1
         # arr_info(occ)
         # logfile.log('p2', occ)
         
