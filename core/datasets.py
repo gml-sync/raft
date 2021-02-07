@@ -251,6 +251,42 @@ class FlyingThings3DSubset(FlowDataset):
                                 self.image_list += [ [images[j], images[j-1]] ]
                                 self.flow_list += [ flows[i] ]
 
+class FlyingThings3DSubsetOcc(FlowDataset):
+    def __init__(self, aug_params=None, root='datasets/FlyingThings3DSubset'):
+        super(FlyingThings3DSubsetOcc, self).__init__(aug_params)
+
+        for cam in ['left']:
+            for direction in ['into_future', 'into_past']:
+                image_dirs = sorted(glob(osp.join(root, 'FlyingThings3D_subset_img/train/image_clean')))
+                image_dirs = sorted([osp.join(f, cam) for f in image_dirs])
+
+                flow_dirs = sorted(glob(osp.join(root, 'FlyingThings3D_subset/train/flow')))
+                flow_dirs = sorted([osp.join(f, cam, direction) for f in flow_dirs])
+
+                occ_dirs = sorted(glob(osp.join(root, 'FlyingThings3D_subset/train/flow_occlusions')))
+                occ_dirs = sorted([osp.join(f, cam, direction) for f in occ_dirs])
+
+                for idir, fdir, odir in zip(image_dirs, flow_dirs, occ_dirs):
+                    images = sorted(glob(osp.join(idir, '*.png')) )
+                    image_indexer = {}
+                    for i in range(len(images)):
+                        image_indexer[ Path(images[i]).stem ] = i
+                    flows = sorted(glob(osp.join(fdir, '*.flo')) )
+                    occs = sorted(glob(osp.join(odir, '*.png')) )
+                    for i in range(len(flows)-1):
+                        flow_name = Path(flows[i]).stem
+                        j = image_indexer[flow_name]
+                        if direction == 'into_future':
+                            if j + 1 < len(images):
+                                self.image_list += [ [images[j], images[j+1]] ]
+                                self.flow_list += [ flows[i] ]
+                                self.occ_list += [ occs[i] ]
+                        elif direction == 'into_past':
+                            if j - 1 >= 0:
+                                self.image_list += [ [images[j], images[j-1]] ]
+                                self.flow_list += [ flows[i] ]
+                                self.occ_list += [ occs[i] ]
+
 class KITTI(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/KITTI'):
         super(KITTI, self).__init__(aug_params, sparse=True)
@@ -301,7 +337,9 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
         #clean_dataset = FlyingThings3D(aug_params, dstype='frames_cleanpass')
         #final_dataset = FlyingThings3D(aug_params, dstype='frames_finalpass')
         #train_dataset = clean_dataset + final_dataset
-        train_dataset = FlyingThings3DSubset(aug_params)
+
+        #train_dataset = FlyingThings3DSubset(aug_params)
+        train_dataset = FlyingThings3DSubsetOcc(aug_params)
 
     elif args.stage == 'sintel':
         aug_params = {'crop_size': args.image_size, 'min_scale': -0.2, 'max_scale': 0.6, 'do_flip': True}
