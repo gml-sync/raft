@@ -361,7 +361,7 @@ def fetch_dataloader(args, TRAIN_DS='C+T+K+S+H'):
         train_dataset = KITTI(aug_params, split='training')
 
     train_loader = data.DataLoader(train_dataset, batch_size=args.batch_size, 
-        pin_memory=False, shuffle=True, num_workers=1, drop_last=True)
+        pin_memory=False, shuffle=True, num_workers=4, drop_last=True)
 
     
     logfile.log('Training with %d image pairs' % len(train_dataset))
