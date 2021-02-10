@@ -97,6 +97,9 @@ def validate_chairs(model, iters=24):
 @torch.no_grad()
 def validate_sintel(model, iters=32):
     """ Peform validation using the Sintel (train) split """
+    if not logfile.logfile:
+        logfile.set_logfile('runs/stdout.log')
+
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
