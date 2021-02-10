@@ -160,7 +160,7 @@ class RAFT(nn.Module):
             flow_predictions.append(flow_up)
             occ_predictions.append(occ_up)
 
-        if test_mode:
-            return coords1 - coords0, flow_up
+        #if test_mode:
+        #    return coords1 - coords0, flow_up
             
         return flow_predictions, occ_predictions
