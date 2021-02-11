@@ -157,6 +157,19 @@ def validate_sintel(model, iters=32):
 
         logfile.log(max_f1, pr, rc, th)
 
+        plt.scatter(rc, pr, s=100)
+        plt.step(recall, precision, label=MODEL + ' Fscore={0:0.4f}'.format(max_f1), linewidth=2)
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('2-class Precision-Recall curve (sintel)')
+        plt.legend(loc='lower left', prop={'size': 14})
+        plt.tight_layout()
+        plt.savefig('naive3_sintel.png')
+        #plt.show()
+
     return results
 
 

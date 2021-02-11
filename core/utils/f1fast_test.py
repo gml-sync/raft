@@ -135,77 +135,78 @@ class F1Accumulator:
     def get_result(self):
         return precision_recall_raw(self.true_positive_sum, self.selected_elements_sum, self.relevant_elements_sum)
 
-#img_rows = 218
-#img_cols = 512
-img_rows = 436
-img_cols = 1024
+if __name__ == '__main__':
+    #img_rows = 218
+    #img_cols = 512
+    img_rows = 436
+    img_cols = 1024
 
 
-#MODEL = 'ALEXANDRA'
-#MODEL = 'MFFocc'
-#MODEL = 'IRR-PWC'
-MODEL = 'RAFT'
+    #MODEL = 'ALEXANDRA'
+    #MODEL = 'MFFocc'
+    #MODEL = 'IRR-PWC'
+    MODEL = 'RAFT'
 
-#res_dir = 'anzina-soft' # Probabilty of occlusions
-#res_dir = 'anzina-hard' # 0/1 thresholded occlusions
-#res_dir = 'cssr1'
-res_dir = 'res_fold'
-#res_dir = 'cssr-hard1'
-#res_dir = 'irr-soft1'
-#res_dir = 'content1'
-#res_dir = 'irr-chairs'
+    #res_dir = 'anzina-soft' # Probabilty of occlusions
+    #res_dir = 'anzina-hard' # 0/1 thresholded occlusions
+    #res_dir = 'cssr1'
+    res_dir = 'res_fold'
+    #res_dir = 'cssr-hard1'
+    #res_dir = 'irr-soft1'
+    #res_dir = 'content1'
+    #res_dir = 'irr-chairs'
 
-#gt_dir = 'sintel-occ1'
-gt_dir = 'occlusions_rev'
+    #gt_dir = 'sintel-occ1'
+    gt_dir = 'occlusions_rev'
 
-# Sum tp, se and re for all images.
-# F1 = 2 * (precision * recall) / (precision + recall)
-# precision = tp / se
-# recall = tp / re
-accumulator = F1Accumulator()
-for i, path in enumerate(sorted(glob(res_dir + '/*/*.png'))):
-    print(i)
-    name = '/'.join(path.split('/')[1:])
-    test_name = os.path.join(gt_dir, name)
-    score_name = os.path.join(res_dir, name)
+    # Sum tp, se and re for all images.
+    # F1 = 2 * (precision * recall) / (precision + recall)
+    # precision = tp / se
+    # recall = tp / re
+    accumulator = F1Accumulator()
+    for i, path in enumerate(sorted(glob(res_dir + '/*/*.png'))):
+        print(i)
+        name = '/'.join(path.split('/')[1:])
+        test_name = os.path.join(gt_dir, name)
+        score_name = os.path.join(res_dir, name)
 
-    # OpenCV is faster than skimage
-    y_test = cv2.cvtColor(cv2.imread(test_name), cv2.COLOR_BGR2GRAY)
-    y_test = cv2.resize(y_test, (img_cols, img_rows)).flatten() / 255
-    y_score = cv2.cvtColor(cv2.imread(score_name), cv2.COLOR_BGR2GRAY)
-    y_score = cv2.resize(y_score, (img_cols, img_rows)).flatten() / 255
+        # OpenCV is faster than skimage
+        y_test = cv2.cvtColor(cv2.imread(test_name), cv2.COLOR_BGR2GRAY)
+        y_test = cv2.resize(y_test, (img_cols, img_rows)).flatten() / 255
+        y_score = cv2.cvtColor(cv2.imread(score_name), cv2.COLOR_BGR2GRAY)
+        y_score = cv2.resize(y_score, (img_cols, img_rows)).flatten() / 255
 
-    y_test = np.asarray(y_test, dtype=np.bool)
-    y_score = np.asarray(y_score, dtype=np.float16)
-    
-    accumulator.add(y_test, y_score)
-    
+        y_test = np.asarray(y_test, dtype=np.bool)
+        y_score = np.asarray(y_score, dtype=np.float16)
+        
+        accumulator.add(y_test, y_score)
+        
 
-precision, recall, thresholds = accumulator.get_result()
+    precision, recall, thresholds = accumulator.get_result()
 
-# Max f-score and figure drawing
-max_f1 = 0
-pr = rc = th = 0
-for i, j in zip(range(len(precision)), thresholds):
-    f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
-    if f1 > max_f1:
-        max_f1 = f1
-        pr = precision[i]
-        rc = recall[i]
-        th = j
+    # Max f-score and figure drawing
+    max_f1 = 0
+    pr = rc = th = 0
+    for i, j in zip(range(len(precision)), thresholds):
+        f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+        if f1 > max_f1:
+            max_f1 = f1
+            pr = precision[i]
+            rc = recall[i]
+            th = j
 
-print(max_f1, pr, rc, th)
-plt.scatter(rc, pr, s=100)
-plt.step(recall, precision, label=MODEL + ' Fscore={0:0.4f}'.format(max_f1), linewidth=2)
+    print(max_f1, pr, rc, th)
+    plt.scatter(rc, pr, s=100)
+    plt.step(recall, precision, label=MODEL + ' Fscore={0:0.4f}'.format(max_f1), linewidth=2)
 
-print("--- %s seconds ---" % (time.time() - start_time))
+    print("--- %s seconds ---" % (time.time() - start_time))
 
-plt.xlabel('Recall')
-plt.ylabel('Precision')
-plt.ylim([0.0, 1.05])
-plt.xlim([0.0, 1.0])
-plt.title('2-class Precision-Recall curve (sintel)')
-plt.legend(loc='lower left', prop={'size': 14})
-plt.tight_layout()
-plt.savefig('naive3_sintel.png')
-#plt.show()
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title('2-class Precision-Recall curve (sintel)')
+    plt.legend(loc='lower left', prop={'size': 14})
+    plt.tight_layout()
+    plt.savefig('naive3_sintel.png')
+    #plt.show()
