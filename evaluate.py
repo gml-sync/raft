@@ -158,7 +158,7 @@ def validate_sintel(model, iters=32):
         logfile.log(max_f1, pr, rc, th)
 
         plt.scatter(rc, pr, s=100)
-        plt.step(recall, precision, label=MODEL + ' Fscore={0:0.4f}'.format(max_f1), linewidth=2)
+        plt.step(recall, precision, label='RAFT Fscore={0:0.4f}'.format(max_f1), linewidth=2)
 
         plt.xlabel('Recall')
         plt.ylabel('Precision')
