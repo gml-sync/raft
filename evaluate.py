@@ -17,6 +17,7 @@ from utils import frame_utils
 from raft import RAFT
 from utils.utils import InputPadder, forward_interpolate
 
+from utils.f1fast_test import F1Accumulator
 from utils.logfile import logfile
 
 
@@ -100,6 +101,9 @@ def validate_sintel(model, iters=32):
     if not logfile.logfile:
         logfile.set_logfile('runs/stdout.log')
 
+    occ_sigmoid = torch.nn.Sigmoid()
+    accumulator = F1Accumulator()
+
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
@@ -107,6 +111,7 @@ def validate_sintel(model, iters=32):
         epe_list = []
 
         for val_id in range(len(val_dataset)):
+            logfile.log('id', val_id)
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
@@ -116,8 +121,11 @@ def validate_sintel(model, iters=32):
 
             flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True)
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
-            occ = occ_seq[-1][0]
+            occ = occ_sigmoid(occ_seq[-1][0])
             flow = padder.unpad(flow).cpu()
+            occ = padder.unpad(occ).cpu()
+
+            accumulator.add(occ_gt, occ)
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
             epe_list.append(epe.view(-1).numpy())
@@ -130,6 +138,21 @@ def validate_sintel(model, iters=32):
 
         logfile.log("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
         results[dstype] = np.mean(epe_list)
+
+        precision, recall, thresholds = accumulator.get_result()
+
+        # Max f-score and figure drawing
+        max_f1 = 0
+        pr = rc = th = 0
+        for i, j in zip(range(len(precision)), thresholds):
+            f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+            if f1 > max_f1:
+                max_f1 = f1
+                pr = precision[i]
+                rc = recall[i]
+                th = j
+
+        logfile.log(max_f1, pr, rc, th)
 
     return results
 
