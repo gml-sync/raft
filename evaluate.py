@@ -20,6 +20,8 @@ from utils.utils import InputPadder, forward_interpolate
 from utils.f1fast_test import F1Accumulator
 from utils.logfile import logfile
 
+def arr_info(img):
+    logfile.log(img.shape, img.dtype, img.min(), img.max())
 
 @torch.no_grad()
 def create_sintel_submission(model, iters=32, warm_start=False, output_path='sintel_submission'):
@@ -126,6 +128,8 @@ def validate_sintel(model, iters=32):
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt.numpy()
             occ = occ.numpy()
+            arr_info(occ_gt)
+            arr_info(occ)
 
             accumulator.add(occ_gt, occ)
 
