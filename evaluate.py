@@ -124,6 +124,8 @@ def validate_sintel(model, iters=32):
             occ = occ_sigmoid(occ_seq[-1][0])
             flow = padder.unpad(flow).cpu()
             occ = padder.unpad(occ).cpu()
+            occ_gt = occ_gt.numpy()
+            occ = occ.numpy()
 
             accumulator.add(occ_gt, occ)
 
