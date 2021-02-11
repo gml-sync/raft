@@ -113,7 +113,6 @@ def validate_sintel(model, iters=32):
         epe_list = []
 
         for val_id in range(len(val_dataset)):
-            logfile.log('id', val_id)
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
@@ -128,8 +127,6 @@ def validate_sintel(model, iters=32):
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
             occ = occ[0].numpy()
-            arr_info(occ_gt)
-            arr_info(occ)
 
             accumulator.add(occ_gt, occ)
 
