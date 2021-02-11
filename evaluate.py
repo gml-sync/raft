@@ -127,7 +127,7 @@ def validate_sintel(model, iters=32):
             flow = padder.unpad(flow).cpu()
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt[0].numpy() # c h w -> h w
-            occ = occ[0].numpy()
+            occ = occ[0].numpy() > 0.5 # from float to bool
             arr_info(occ_gt)
             arr_info(occ)
 
