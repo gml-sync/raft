@@ -107,11 +107,11 @@ def validate_sintel(model, iters=32):
     save_dir = Path('runs/sintel_val').resolve()
 
     occ_sigmoid = torch.nn.Sigmoid()
-    accumulator = F1Accumulator()
 
     model.eval()
     results = {}
-    for dstype in ['final']:
+    for dstype in ['clean', 'final']:
+        accumulator = F1Accumulator()
         val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
 
