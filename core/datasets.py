@@ -150,7 +150,7 @@ class MpiSintelOcc(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/Sintel', dstype='clean'):
         super(MpiSintelOcc, self).__init__(aug_params)
         flow_root = osp.join(root, split, 'flow')
-        occ_root = osp.join(root, split, 'occlusions_rev')
+        occ_root = osp.join(root, split, 'occlusions')
         image_root = osp.join(root, split, dstype)
 
         if split == 'test':
