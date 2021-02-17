@@ -19,6 +19,8 @@ from utils.utils import InputPadder, forward_interpolate
 
 from utils.f1fast_test import F1Accumulator
 from utils.logfile import logfile
+from pathlib import Path
+from skimage import io
 
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
@@ -102,6 +104,7 @@ def validate_sintel(model, iters=32):
     """ Peform validation using the Sintel (train) split """
     if not logfile.logfile:
         logfile.set_logfile('runs/stdout.log')
+    save_dir = Path('runs/sintel_val').resolve()
 
     occ_sigmoid = torch.nn.Sigmoid()
     accumulator = F1Accumulator()
@@ -120,7 +123,7 @@ def validate_sintel(model, iters=32):
             padder = InputPadder(image1.shape)
             image1, image2 = padder.pad(image1, image2)
 
-            flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True)
+            flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
             occ = occ_sigmoid(occ_seq[-1][0])
             flow = padder.unpad(flow).cpu()
@@ -129,6 +132,9 @@ def validate_sintel(model, iters=32):
             occ = occ[0].numpy()
 
             accumulator.add(occ_gt, occ)
+            occ_path = save_dir / dstype
+            occ_path.mkdir()
+            io.imsave(occ_path / (str(val_id) + '.png'), occ)
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
             epe_list.append(epe.view(-1).numpy())
