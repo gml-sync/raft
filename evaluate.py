@@ -133,7 +133,7 @@ def validate_sintel(model, iters=32):
 
             accumulator.add(occ_gt, occ)
             occ_path = save_dir / dstype
-            occ_path.mkdir()
+            occ_path.mkdir(parents=True, exist_ok=True)
             io.imsave(occ_path / (str(val_id) + '.png'), occ)
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
