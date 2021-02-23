@@ -145,7 +145,7 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     metrics = {
         'epe': epe.mean().item(),
         'flow_loss': f_loss.data,
-        'occ_loss': o_loss.data,
+        #'occ_loss': o_loss.data,
         '1px': (epe < 1).float().mean().item(),
         '3px': (epe < 3).float().mean().item(),
         '5px': (epe < 5).float().mean().item(),
