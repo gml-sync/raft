@@ -131,15 +131,16 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
     f1 = f1.view(-1)[valid.view(-1)]
     
     f_loss = flow_loss.detach()
-    o_loss = occ_loss.detach()
-    if (f_loss.data > o_loss.data).numpy:
-        f_l_w = 1
-        o_l_w = f_loss / o_loss
-    else:
-        f_l_w = o_loss / f_loss
-        o_l_w = 1
+    #o_loss = occ_loss.detach()
+    #if (f_loss.data > o_loss.data).numpy:
+    #    f_l_w = 1
+    #    o_l_w = f_loss / o_loss
+    #else:
+    #    f_l_w = o_loss / f_loss
+    #    o_l_w = 1
 
-    total_loss = (flow_loss * f_l_w + occ_loss * o_l_w) / (2 * flow_gt.size(0))
+    #total_loss = (flow_loss * f_l_w + occ_loss * o_l_w) / (2 * flow_gt.size(0))
+    total_loss = flow_loss
 
     metrics = {
         'epe': epe.mean().item(),
