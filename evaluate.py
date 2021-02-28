@@ -22,6 +22,9 @@ from utils.logfile import logfile
 from pathlib import Path
 from skimage import io
 
+if not logfile.logfile:
+        logfile.set_logfile('runs/stdout.log')
+
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
 
@@ -98,9 +101,55 @@ def validate_chairs(model, iters=24):
     logfile.log("Validation Chairs EPE: %f" % epe)
     return {'chairs': epe}
 
-
 @torch.no_grad()
 def validate_sintel(model, iters=32):
+    """ Peform validation using the Sintel (train) split """
+    save_dir = Path('runs/sintel_val').resolve()
+    model.eval()
+    results = {}
+    for dstype in ['clean', 'final']:
+        val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
+        epe_list = []
+
+        for val_id in range(len(val_dataset)):
+            image1, image2, flow_gt, _ = val_dataset[val_id]
+            image1 = image1[None].cuda()
+            image2 = image2[None].cuda()
+            if val_id == 0:
+                logfile.log(image1.size())
+
+            padder = InputPadder(image1.shape)
+            image1, image2 = padder.pad(image1, image2)
+
+            flow_low, flow_pr = model(image1, image2, iters=iters, test_mode=True)
+            flow = padder.unpad(flow_pr[0]).cpu() # b c h w -> c h w
+
+            epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
+            epe_list.append(epe.view(-1).numpy())
+            
+            path = save_dir / dstype
+            path.mkdir(parents=True, exist_ok=True)
+            
+            f = flow.permute(1,2,0).numpy()
+            flow_img = flow_viz.flow_to_image(f)
+            io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
+            #io.imsave(occ_path / (str(val_id) + '.png'), occ)
+            #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
+            #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
+
+        epe_all = np.concatenate(epe_list)
+        epe = np.mean(epe_all)
+        px1 = np.mean(epe_all<1)
+        px3 = np.mean(epe_all<3)
+        px5 = np.mean(epe_all<5)
+
+        print("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
+        results[dstype] = np.mean(epe_list)
+
+    return results
+
+@torch.no_grad()
+def validate_sintel_occ(model, iters=32):
     """ Peform validation using the Sintel (train) split """
     if not logfile.logfile:
         logfile.set_logfile('runs/stdout.log')
@@ -133,12 +182,12 @@ def validate_sintel(model, iters=32):
 
             accumulator.add(occ_gt, occ)
             
-            occ_path = save_dir / dstype
-            occ_path.mkdir(parents=True, exist_ok=True)
+            path = save_dir / dstype
+            path.mkdir(parents=True, exist_ok=True)
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
-            io.imsave(occ_path / '{:04d}_flow.jpg'.format(val_id), flow_img)
+            io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
             #io.imsave(occ_path / (str(val_id) + '.png'), occ)
             #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
             #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
@@ -248,7 +297,7 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            validate_sintel(model.module)
+            validate_sintel_occ(model.module)
 
         elif args.dataset == 'kitti':
             validate_kitti(model.module)
