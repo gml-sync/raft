@@ -115,7 +115,8 @@ def validate_sintel(model, iters=32):
             image1, image2, flow_gt, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
-            logfile.log(image1.size)
+            if val_id == 0:
+                logfile.log(image1.size())
 
             padder = InputPadder(image1.shape)
             image1, image2 = padder.pad(image1, image2)
