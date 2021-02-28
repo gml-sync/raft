@@ -22,6 +22,9 @@ from utils.logfile import logfile
 from pathlib import Path
 from skimage import io
 
+if not logfile.logfile:
+        logfile.set_logfile('runs/stdout.log')
+
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
 
