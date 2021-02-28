@@ -17,6 +17,13 @@ from utils import frame_utils
 from raft import RAFT
 from utils.utils import InputPadder, forward_interpolate
 
+from utils.f1fast_test import F1Accumulator
+from utils.logfile import logfile
+from pathlib import Path
+from skimage import io
+
+def arr_info(img):
+    logfile.log(img.shape, img.dtype, img.min(), img.max())
 
 @torch.no_grad()
 def create_sintel_submission(model, iters=32, warm_start=False, output_path='sintel_submission'):
@@ -88,29 +95,53 @@ def validate_chairs(model, iters=24):
         epe_list.append(epe.view(-1).numpy())
 
     epe = np.mean(np.concatenate(epe_list))
-    print("Validation Chairs EPE: %f" % epe)
+    logfile.log("Validation Chairs EPE: %f" % epe)
     return {'chairs': epe}
 
 
 @torch.no_grad()
 def validate_sintel(model, iters=32):
     """ Peform validation using the Sintel (train) split """
+    if not logfile.logfile:
+        logfile.set_logfile('runs/stdout.log')
+    save_dir = Path('runs/sintel_val').resolve()
+
+    occ_sigmoid = torch.nn.Sigmoid()
+
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
-        val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
+        accumulator = F1Accumulator()
+        val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
 
         for val_id in range(len(val_dataset)):
-            image1, image2, flow_gt, _ = val_dataset[val_id]
+            image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
 
             padder = InputPadder(image1.shape)
             image1, image2 = padder.pad(image1, image2)
 
-            flow_low, flow_pr = model(image1, image2, iters=iters, test_mode=True)
-            flow = padder.unpad(flow_pr[0]).cpu()
+            flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
+            flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
+            occ = occ_sigmoid(occ_seq[-1][0])
+            flow = padder.unpad(flow).cpu() # c h w
+            occ = padder.unpad(occ).cpu()
+            occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
+            occ = occ[0].numpy()
+
+            accumulator.add(occ_gt, occ)
+            
+            occ_path = save_dir / dstype
+            occ_path.mkdir(parents=True, exist_ok=True)
+            
+            f = flow.permute(1,2,0).numpy()
+            flow_img = flow_viz.flow_to_image(f)
+            io.imsave(occ_path / '{:04d}_flow.jpg'.format(val_id), flow_img)
+            #io.imsave(occ_path / (str(val_id) + '.png'), occ)
+            #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
+            #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
             epe_list.append(epe.view(-1).numpy())
@@ -121,8 +152,36 @@ def validate_sintel(model, iters=32):
         px3 = np.mean(epe_all<3)
         px5 = np.mean(epe_all<5)
 
-        print("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
+        logfile.log("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
         results[dstype] = np.mean(epe_list)
+
+        precision, recall, thresholds = accumulator.get_result()
+
+        # Max f-score and figure drawing
+        max_f1 = 0
+        pr = rc = th = 0
+        for i, j in zip(range(len(precision)), thresholds):
+            f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+            if f1 > max_f1:
+                max_f1 = f1
+                pr = precision[i]
+                rc = recall[i]
+                th = j
+
+        logfile.log(max_f1, pr, rc, th)
+
+        plt.scatter(rc, pr, s=100)
+        plt.step(recall, precision, label='RAFT Fscore={0:0.4f}'.format(max_f1), linewidth=2)
+
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('2-class Precision-Recall curve (sintel)')
+        plt.legend(loc='lower left', prop={'size': 14})
+        plt.tight_layout()
+        plt.savefig('naive3_sintel.png')
+        #plt.show()
 
     return results
 
@@ -162,14 +221,14 @@ def validate_kitti(model, iters=24):
     epe = np.mean(epe_list)
     f1 = 100 * np.mean(out_list)
 
-    print("Validation KITTI: %f, %f" % (epe, f1))
+    logfile.log("Validation KITTI: %f, %f" % (epe, f1))
     return {'kitti-epe': epe, 'kitti-f1': f1}
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', help="restore checkpoint")
-    parser.add_argument('--dataset', help="dataset for evaluation")
+    parser.add_argument('--model', default='models/raft-things.pth', help="restore checkpoint")
+    parser.add_argument('--dataset', default='sintel', help="dataset for evaluation")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
