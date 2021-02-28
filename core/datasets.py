@@ -14,6 +14,7 @@ import os.path as osp
 from utils import frame_utils
 from utils.augmentor import FlowAugmentor, SparseFlowAugmentor
 
+from utils.torch_augmentation import check_out_of_bound
 from pathlib import Path
 from utils.logfile import logfile
 import matplotlib.pyplot as plt
@@ -109,6 +110,8 @@ class FlowDataset(data.Dataset):
         img2 = torch.from_numpy(img2).permute(2, 0, 1).float()
         flow = torch.from_numpy(flow).permute(2, 0, 1).float()
         occ = torch.from_numpy(occ).permute(2, 0, 1).float() # [C, H, W]
+        
+        occ = check_out_of_bound(flow, occ)
 
         if valid is not None:
             valid = torch.from_numpy(valid)
