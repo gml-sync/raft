@@ -70,7 +70,7 @@ class FlowAugmentor:
 
         return img1, img2, occ
     
-    def check_out_of_bound(flow, occ):
+    def check_out_of_bound(self, flow, occ):
         """ Add new occlusions for cropping/zoom """
         
         batch_size, _c, height, width = flow.size()
