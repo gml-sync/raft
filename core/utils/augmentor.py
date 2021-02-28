@@ -110,8 +110,6 @@ class FlowAugmentor:
         img2 = img2[y0:y0+self.crop_size[0], x0:x0+self.crop_size[1]]
         flow = flow[y0:y0+self.crop_size[0], x0:x0+self.crop_size[1]]
         occ = occ[y0:y0+self.crop_size[0], x0:x0+self.crop_size[1]]
-        
-        occ = self.check_out_of_bound(flow, occ)
 
         return img1, img2, flow, occ
 
