@@ -137,7 +137,7 @@ class MpiSintel(FlowDataset):
         if split == 'test':
             self.is_test = True
 
-        for scene in os.listdir(image_root):
+        for scene in sorted(os.listdir(image_root)):
             image_list = sorted(glob(osp.join(image_root, scene, '*.png')))
             for i in range(len(image_list)-1):
                 self.image_list += [ [image_list[i], image_list[i+1]] ]
@@ -156,7 +156,7 @@ class MpiSintelOcc(FlowDataset):
         if split == 'test':
             self.is_test = True
 
-        for scene in os.listdir(image_root):
+        for scene in sorted(os.listdir(image_root)):
             image_list = sorted(glob(osp.join(image_root, scene, '*.png')))
             for i in range(len(image_list)-1):
                 self.image_list += [ [image_list[i], image_list[i+1]] ]

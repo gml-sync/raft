@@ -126,17 +126,22 @@ def validate_sintel(model, iters=32):
             flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
             occ = occ_sigmoid(occ_seq[-1][0])
-            flow = padder.unpad(flow).cpu()
+            flow = padder.unpad(flow).cpu() # c h w
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
             occ = occ[0].numpy()
 
             accumulator.add(occ_gt, occ)
+            
             occ_path = save_dir / dstype
             occ_path.mkdir(parents=True, exist_ok=True)
-            io.imsave(occ_path / (str(val_id) + '.png'), occ)
-            io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
-            io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
+            
+            f = flow.permute(1,2,0).numpy()
+            flow_img = flow_viz.flow_to_image(f)
+            io.imsave(occ_path / '{:04d}_flow.jpg'.format(val_id), flow_img)
+            #io.imsave(occ_path / (str(val_id) + '.png'), occ)
+            #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
+            #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
             epe_list.append(epe.view(-1).numpy())

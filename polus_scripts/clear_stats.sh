@@ -5,5 +5,4 @@ fi
 cd $TRAINHOME
 rm out/*
 cd $TRAINHOME/git/runs
-rm *.log
-rm logbook/*
+rm -r ./*
