@@ -260,7 +260,7 @@ def train(args):
                     PATH = 'checkpoints/01.pth'
                     torch.save(model.state_dict(), PATH)
                     exit()
-            if 0:
+            if 1:
                 load_model_txt(model, path)
                 PATH = 'checkpoints/01.pth'
                 torch.save(model.state_dict(), PATH)
