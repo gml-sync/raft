@@ -256,7 +256,7 @@ def train(args):
                     model.load_state_dict(checkpoint, strict=False)
                     logfile.log('Loaded model without steps')
 
-                if 0: # Save only weights without state
+                if 1: # Save only weights without state
                     PATH = 'checkpoints/01.pth'
                     torch.save(model.state_dict(), PATH)
                     exit()
@@ -341,6 +341,9 @@ def train(args):
                 }
                 torch.save(checkpoint, PATH)
                 checkpoint_save_path(PATH, save_json=True)
+
+                PATH = 'checkpoints/01.pth'
+                torch.save(model.state_dict(), PATH)
 
                 # save example images
                 i1, i2, occpred, occgt = [x.detach()[0].permute(1,2,0).cpu().numpy() for x in [image1, image2, occ_predictions[-1], occ]]
