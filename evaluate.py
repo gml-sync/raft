@@ -125,14 +125,16 @@ def validate_sintel(model, iters=32):
             flow = padder.unpad(flow_pr[0]).cpu() # b c h w -> c h w
 
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
-            epe_list.append(epe.view(-1).numpy())
+            np_epe = epe.view(-1).numpy()
+            epe_list.append(np_epe)
+            logfile.log(val_id, 'mean epe', np.mean(np_epe))
             
             path = save_dir / dstype
             path.mkdir(parents=True, exist_ok=True)
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
-            io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
+            io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
             #io.imsave(occ_path / (str(val_id) + '.png'), occ)
             #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
             #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
@@ -187,14 +189,19 @@ def validate_sintel_occ(model, iters=32):
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
+            io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
             #io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
-            io.imsave(path / '{:04d}.png'.format(val_id), occ)
+           # io.imsave(path / '{:04d}.png'.format(val_id), occ)
             #io.imsave(occ_path / (str(val_id) + '.png'), occ)
             #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
             #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
-
+            
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
-            epe_list.append(epe.view(-1).numpy())
+            np_epe = epe.view(-1).numpy()
+            epe_list.append(np_epe)
+            logfile.log(val_id, 'mean epe', np.mean(np_epe))
+            
+            
 
         epe_all = np.concatenate(epe_list)
         epe = np.mean(epe_all)
