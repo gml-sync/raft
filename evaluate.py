@@ -1,5 +1,5 @@
 import sys
-sys.path.append('core')
+sys.path.append('core_or_raft')
 
 from PIL import Image
 import argparse
@@ -305,7 +305,8 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            validate_sintel_occ(model.module)
+            validate_sintel(model.module)
+            #validate_sintel_occ(model.module)
 
         elif args.dataset == 'kitti':
             validate_kitti(model.module)
