@@ -108,7 +108,8 @@ def validate_sintel(model, iters=32):
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
-        val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
+        #val_dataset = datasets.MpiSintel(split='training', dstype=dstype)
+        val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
 
         for val_id in range(len(val_dataset)):
