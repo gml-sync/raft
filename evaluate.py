@@ -99,9 +99,9 @@ def validate_chairs(model, iters=24):
     return {'chairs': epe}
 
 @torch.no_grad()
-def validate_sintel(model, iters=32):
+def validate_sintel(model, out_path, iters=32):
     """ Peform validation using the Sintel (train) split """
-    save_dir = Path('runs/sintel_val').resolve()
+    save_dir = Path('{}/sintel_val'.format(out_path)).resolve()
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
@@ -150,9 +150,9 @@ def validate_sintel(model, iters=32):
     return results
 
 @torch.no_grad()
-def validate_sintel_occ(model, iters=32):
+def validate_sintel_occ(model, out_path, iters=32):
     """ Peform validation using the Sintel (train) split """
-    save_dir = Path('runs/sintel_val').resolve()
+    save_dir = Path('{}/sintel_val'.format(out_path)).resolve()
     occ_sigmoid = torch.nn.Sigmoid()
     model.eval()
     results = {}
@@ -279,10 +279,11 @@ def validate_kitti(model, iters=24):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', help="path for saving output")
     parser.add_argument('--model', default='models/raft-things.pth', help="restore checkpoint")
+    parser.add_argument('--output', help="path for saving output")
     parser.add_argument('--dataset', default='sintel', help="dataset for evaluation")
     parser.add_argument('--small', action='store_true', help='use small model')
+    parser.add_argument('--model_occ', action='store_true', help='model with occlusions')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
     args = parser.parse_args()
@@ -291,7 +292,7 @@ if __name__ == '__main__':
     exit()
     
     if not logfile.logfile:
-        logfile.set_logfile('runs/stdout.log')
+        logfile.set_logfile('{}/stdout.log'.format(args.output))
 
     model = torch.nn.DataParallel(RAFT(args))
     model.load_state_dict(torch.load(args.model))
@@ -307,8 +308,11 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            #validate_sintel(model.module)
-            validate_sintel_occ(model.module)
+            if args.model_occ:
+                validate_sintel_occ(model.module, args.output)
+            else:
+                validate_sintel(model.module, args.output)
+            
 
         elif args.dataset == 'kitti':
             validate_kitti(model.module)
