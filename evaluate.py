@@ -283,7 +283,6 @@ if __name__ == '__main__':
     parser.add_argument('--output', help="path for saving output")
     parser.add_argument('--dataset', default='sintel', help="dataset for evaluation")
     parser.add_argument('--small', action='store_true', help='use small model')
-    parser.add_argument('--model_occ', action='store_true', help='model with occlusions')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
     args = parser.parse_args()
@@ -308,10 +307,8 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            if args.model_occ:
-                validate_sintel_occ(model.module, args.output)
-            else:
-                validate_sintel(model.module, args.output)
+            #validate_sintel_occ(model.module, args.output)
+            validate_sintel(model.module, args.output)
             
 
         elif args.dataset == 'kitti':
