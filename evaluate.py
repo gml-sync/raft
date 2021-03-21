@@ -1,5 +1,5 @@
 import sys
-sys.path.append('core_or_raft')
+sys.path.append('core')
 
 from PIL import Image
 import argparse
@@ -21,9 +21,6 @@ from utils.f1fast_test import F1Accumulator
 from utils.logfile import logfile
 from pathlib import Path
 from skimage import io
-
-if not logfile.logfile:
-        logfile.set_logfile('runs/stdout.log')
 
 def arr_info(img):
     logfile.log(img.shape, img.dtype, img.min(), img.max())
@@ -155,12 +152,8 @@ def validate_sintel(model, iters=32):
 @torch.no_grad()
 def validate_sintel_occ(model, iters=32):
     """ Peform validation using the Sintel (train) split """
-    if not logfile.logfile:
-        logfile.set_logfile('runs/stdout.log')
     save_dir = Path('runs/sintel_val').resolve()
-
     occ_sigmoid = torch.nn.Sigmoid()
-
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
@@ -286,12 +279,19 @@ def validate_kitti(model, iters=24):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--output', help="path for saving output")
     parser.add_argument('--model', default='models/raft-things.pth', help="restore checkpoint")
     parser.add_argument('--dataset', default='sintel', help="dataset for evaluation")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--mixed_precision', action='store_true', help='use mixed precision')
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
     args = parser.parse_args()
+    
+    print(args.output)
+    exit()
+    
+    if not logfile.logfile:
+        logfile.set_logfile('runs/stdout.log')
 
     model = torch.nn.DataParallel(RAFT(args))
     model.load_state_dict(torch.load(args.model))
@@ -307,8 +307,8 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            validate_sintel(model.module)
-            #validate_sintel_occ(model.module)
+            #validate_sintel(model.module)
+            validate_sintel_occ(model.module)
 
         elif args.dataset == 'kitti':
             validate_kitti(model.module)
