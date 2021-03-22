@@ -287,9 +287,6 @@ if __name__ == '__main__':
     parser.add_argument('--alternate_corr', action='store_true', help='use efficent correlation implementation')
     args = parser.parse_args()
     
-    print(args.output)
-    exit()
-    
     if not logfile.logfile:
         logfile.set_logfile('{}/stdout.log'.format(args.output))
 
