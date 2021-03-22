@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 import os
 import subprocess
+import argparse
 
 def subp_run_str(cmd, output=True):
     print('RUN:', cmd)
@@ -21,7 +22,8 @@ def datestr():
     return '{}{:02}{:02}_{:02}{:02}'.format(now.year, now.month, now.day, now.hour, now.minute)
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
-file_path = '/home/lavrushkins/occlusions/conda/raft/out/stderr_val.txt'
+output = os.environ['OUTPUTS'] # this will raise an error because it's a dictionary
+file_path = '{}/stderr_val.txt'.format(output)
 if os.path.exists(file_path):
     os.remove(file_path)
 
