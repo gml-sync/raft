@@ -4,5 +4,5 @@ if [ -z "$1" ]
 fi
 conda activate pytorch
 export TRAINHOME=$CONDA/raft
-export OUTPUTS="$TRAINHOME/runs/$1"
+export OUTPUTS="$TRAINHOME/git/runs/$1"
 mkdir -p $OUTPUTS
