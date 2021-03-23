@@ -87,7 +87,7 @@ def f1_score_bal_loss(y_pred, y_true):
 def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     """ Loss function defined over sequence of flow predictions """
     
-    n_predictions = len(flow_preds)    
+    n_predictions = len(flow_preds)
     flow_loss = 0.0
     occ_loss = 0.0
 

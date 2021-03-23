@@ -23,7 +23,7 @@ def datestr():
 
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 output = os.environ['OUTPUTS'] # this will raise an error because it's a dictionary
-file_path = '{}/stderr_val.txt'.format(output)
+file_path = '{}/job_stderr.txt'.format(output)
 if os.path.exists(file_path):
     os.remove(file_path)
 
