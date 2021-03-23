@@ -46,8 +46,6 @@ from time import sleep
 
 from skimage import io
 
-logfile.set_logfile('runs/stdout.log')
-
 # exclude extremely large displacements
 MAX_FLOW = 400
 
@@ -275,7 +273,8 @@ def train(args):
 
         
     train_loader = datasets.fetch_dataloader(args)
-    logger = Logger(model, scheduler, optimizer, total_steps=total_steps)
+    logger = Logger(model, scheduler, optimizer,
+        path='{}/logbook'.format(args.output), total_steps=total_steps)
     scaler = GradScaler(enabled=args.mixed_precision)
 
     if 0:
@@ -350,10 +349,10 @@ def train(args):
                 # arr_info(occpred) # (368, 496, 1) float32 0.0 8.83106e-05
                 # arr_info(occgt) # (368, 496, 1) float32 0.0 1.0
                 
-                io.imsave('runs/{}_img1.png'.format(i_batch), i1)
-                io.imsave('runs/{}_img2.png'.format(i_batch), i2)
-                io.imsave('runs/{}_occpred.png'.format(i_batch), occpred)
-                io.imsave('runs/{}_occgt.png'.format(i_batch), occgt)
+                io.imsave('{}/{}_img1.png'.format(args.output, i_batch), i1)
+                io.imsave('{}/{}_img2.png'.format(args.output, i_batch), i2)
+                io.imsave('{}/{}_occpred.png'.format(args.output, i_batch), occpred)
+                io.imsave('{}/{}_occgt.png'.format(args.output, i_batch), occgt)
             
             # if total_steps % VAL_FREQ == VAL_FREQ - 1:
             #     logfile.log('Validation. Step', total_steps)
@@ -386,7 +385,8 @@ def train(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', default='raft', help="name your experiment")
-    parser.add_argument('--stage', help="determines which dataset to use for training") 
+    parser.add_argument('--stage', help="determines which dataset to use for training")
+    parser.add_argument('--output', help="path for saving output")
     parser.add_argument('--restore_ckpt', help="restore checkpoint")
     parser.add_argument('--small', action='store_true', help='use small model')
     parser.add_argument('--validation', type=str, nargs='+')
@@ -407,6 +407,9 @@ if __name__ == '__main__':
     parser.add_argument('--gamma', type=float, default=0.8, help='exponential weighting')
     parser.add_argument('--add_noise', action='store_true')
     args = parser.parse_args()
+
+    if not logfile.logfile:
+        logfile.set_logfile('{}/stdout.log'.format(args.output))
 
     rand_seed = int(time.time() * 1000) % (2 ** 30)
     torch.manual_seed(rand_seed)
