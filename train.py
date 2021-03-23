@@ -137,7 +137,8 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
        f_l_w = o_loss / f_loss
        o_l_w = 1
 
-    total_loss = (flow_loss * f_l_w + occ_loss * o_l_w) / (2 * flow_gt.size(0))
+    #total_loss = (flow_loss * f_l_w + occ_loss * o_l_w) / (2 * flow_gt.size(0))
+    total_loss = (flow_loss + occ_loss * 10) / (2 * flow_gt.size(0))
 
     metrics = {
         'epe': epe.mean().item(),
