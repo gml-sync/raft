@@ -54,6 +54,8 @@ class RAFT(nn.Module):
             self.fnet = BasicEncoder(output_dim=256, norm_fn='instance', dropout=args.dropout)        
             self.cnet = BasicEncoder(output_dim=hdim+cdim, norm_fn='batch', dropout=args.dropout)
             self.update_block = BasicUpdateBlock(self.args, hidden_dim=hdim)
+        
+        self.occ_sigmoid = nn.Sigmoid()
 
     def freeze_bn(self):
         for m in self.modules():
@@ -156,6 +158,7 @@ class RAFT(nn.Module):
                 occ_up = self.upsample_flow(occ_true, up_mask_occ)
 
             occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
+            occ_up = self.occ_sigmoid(occ_up)
             
             flow_predictions.append(flow_up)
             occ_predictions.append(occ_up)

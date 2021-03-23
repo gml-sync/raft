@@ -153,7 +153,6 @@ def validate_sintel(model, out_path, iters=32):
 def validate_sintel_occ(model, out_path, iters=32):
     """ Peform validation using the Sintel (train) split """
     save_dir = Path('{}/sintel_val'.format(out_path)).resolve()
-    occ_sigmoid = torch.nn.Sigmoid()
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
@@ -171,7 +170,7 @@ def validate_sintel_occ(model, out_path, iters=32):
 
             flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
-            occ = occ_sigmoid(occ_seq[-1][0])
+            occ = occ_seq[-1][0]
             flow = padder.unpad(flow).cpu() # c h w
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool

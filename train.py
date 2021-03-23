@@ -75,6 +75,7 @@ def arr_info(img):
 #     return torch.mean(precision * recall / (precision * beta2 + recall + eps) * (1 + beta2))
 
 def f1_score_bal_loss(y_pred, y_true):
+    # y_pred.shape = [batch, 1, height, width]
     eps = 1e-8
 
     tp = -(y_true * torch.log(y_pred + eps)).sum(dim=2).sum(dim=2).sum(dim=1)
@@ -83,12 +84,10 @@ def f1_score_bal_loss(y_pred, y_true):
     denom_tp = y_true.sum(dim=2).sum(dim=2).sum(dim=1) + y_pred.sum(dim=2).sum(dim=2).sum(dim=1) + eps
     denom_fn = (1 - y_true).sum(dim=2).sum(dim=2).sum(dim=1) + (1 - y_pred).sum(dim=2).sum(dim=2).sum(dim=1) + eps
 
-    return ((tp / denom_tp).sum() + (fn / denom_fn).sum()) * y_pred.size(2) * y_pred.size(3) * 0.5
+    return ((tp / denom_tp).sum() + (fn / denom_fn).sum())
 
 def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_flow=MAX_FLOW):
     """ Loss function defined over sequence of flow predictions """
-
-    occ_sigmoid = nn.Sigmoid()
     
     n_predictions = len(flow_preds)    
     flow_loss = 0.0
@@ -106,7 +105,7 @@ def sequence_loss(flow_preds, flow_gt, occ_preds, occ_gt, valid, gamma=0.8, max_
         
         # print('seq occ', occ_preds[i].shape, occ_gt.shape)
         #i_loss = (occ_preds[i] - occ_gt).abs()
-        occ_pred = occ_sigmoid(occ_preds[i])
+        occ_pred = occ_preds[i]
         i_loss = f1_score_bal_loss(occ_pred, occ_gt)
         #occ_loss += i_weight * (valid[:, None] * i_loss).mean()
         occ_loss += i_weight * i_loss
