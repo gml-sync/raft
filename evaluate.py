@@ -1,5 +1,5 @@
 import sys
-sys.path.append('core_or_raft')
+sys.path.append('core')
 
 from PIL import Image
 import argparse
@@ -184,8 +184,7 @@ def validate_sintel_occ(model, out_path, iters=32):
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
             io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
-            #io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
-           # io.imsave(path / '{:04d}.png'.format(val_id), occ)
+            io.imsave(path / '{:04d}.png'.format(val_id), occ)
             #io.imsave(occ_path / (str(val_id) + '.png'), occ)
             #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
             #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
@@ -303,8 +302,8 @@ if __name__ == '__main__':
             validate_chairs(model.module)
 
         elif args.dataset == 'sintel':
-            #validate_sintel_occ(model.module, args.output)
-            validate_sintel(model.module, args.output)
+            validate_sintel_occ(model.module, args.output)
+            #validate_sintel(model.module, args.output)
             
 
         elif args.dataset == 'kitti':
