@@ -30,6 +30,7 @@ parser.add_argument('--expid', help="experiment name")
 parser.add_argument('--single', action='store_true', help="launch job only once")
 args = parser.parse_args()
 
+print(f"'{args.expid}', '{args.single}'")
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 #output = os.environ['OUTPUTS'] # this will raise an error because it's a dictionary
 file_path = f'{args.expid}/job_stderr.txt'
