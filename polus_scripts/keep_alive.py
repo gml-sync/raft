@@ -17,7 +17,6 @@ def subp_run_str(cmd, output=True):
     return rc
 
 def subp_bash(cmd):
-    print('RUN:', cmd)
     os.system(f'bash -c "{cmd}"')
     #subp_run_str("bash -c '" + cmd + "'")
 
@@ -50,7 +49,6 @@ while True:
     if args.single:
         print('single run')
         break
-    print('wait...')
     while not os.path.exists(file_path):
         time.sleep(5)
     os.remove(file_path)
