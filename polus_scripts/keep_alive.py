@@ -32,7 +32,6 @@ parser.add_argument('--single', action='store_true', help="launch job only once"
 args = parser.parse_args()
 
 
-if args.expid:
 print(f"experiment name={args.expid}\nsingle run={args.single}")
 outputs = "$TRAINHOME/git/runs/" + args.expid
 subp_bash("mkdir -p " + outputs)
