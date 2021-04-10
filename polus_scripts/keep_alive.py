@@ -17,6 +17,7 @@ def subp_run_str(cmd, output=True):
     return rc
 
 def subp_bash(cmd):
+    print('RUN:', cmd)
     os.system(f'bash -c "{cmd}"')
     #subp_run_str("bash -c '" + cmd + "'")
 
@@ -30,7 +31,7 @@ parser.add_argument('--expid', help="experiment name")
 parser.add_argument('--single', action='store_true', help="launch job only once")
 args = parser.parse_args()
 
-print(f"'{args.expid}', '{args.single}'")
+print(f"experiment name={args.expid}\nsingle run={args.single}")
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 #output = os.environ['OUTPUTS'] # this will raise an error because it's a dictionary
 file_path = f'{args.expid}/job_stderr.txt'
@@ -38,7 +39,7 @@ if os.path.exists(file_path):
     os.remove(file_path)
 
 while True:
-    print(datestr() + ' submit')
+    print(datestr(), args.expid, 'submit')
     subp_bash(
         f'bsub -o {args.expid}/job_stdout.txt '
         f'-e {args.expid}/job_stderr.txt -W 02:30 -q normal -gpu "num=1:mode=exclusive_process" '
