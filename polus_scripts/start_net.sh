@@ -1,4 +1,4 @@
-# start_net.sh <experiment_id>
+# start_net.sh <output_dir>
 #tar  --skip-old-files -xf FlyingThings3D_subset_image_clean.tar.bz2
 cd $TRAINHOME/git
 python -u train.py --name raft-chairs --stage chairs --validation chairs --restore_ckpt checkpoints/raft-chairs.pth --gpus 0 --num_steps 250000 --batch_size 4 --lr 0.00025 --image_size 368 496 --wdecay 0.0001 --output=$1 >>$1/main_stdout.log 2>>$1/main_stderr.log

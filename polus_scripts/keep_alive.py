@@ -46,7 +46,7 @@ while True:
     subp_bash(
         f'bsub -o {outputs}/job_stdout.txt '
         f'-e {outputs}/job_stderr.txt -W 02:30 -q normal -gpu "num=1:mode=exclusive_process" '
-        f'bash $TRAINHOME/git/polus_scripts/start_net.sh {args.expid}')
+        f'bash $TRAINHOME/git/polus_scripts/start_net.sh {outputs}')
     if args.single:
         print('single run')
         break
