@@ -408,6 +408,8 @@ if __name__ == '__main__':
     parser.add_argument('--add_noise', action='store_true')
     args = parser.parse_args()
 
+    print(f'Hooray! Output is {args.output}')
+
     if not logfile.logfile:
         logfile.set_logfile('{}/stdout.log'.format(args.output))
 
