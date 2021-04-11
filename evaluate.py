@@ -176,6 +176,9 @@ def validate_sintel_occ(model, out_path, iters=32):
             occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
             occ = occ[0].numpy()
 
+            arrinfo(occ_gt)
+            arrinfo(occ)
+
             accumulator.add(occ_gt, occ)
             
             path = save_dir / dstype
