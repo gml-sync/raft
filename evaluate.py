@@ -162,9 +162,7 @@ def validate_sintel_occ(model, out_path, iters=32):
 
         for val_id in range(len(val_dataset)):
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
-            print(image1.shape)
             image1 = image1[None].cuda()
-            print(image1.shape)
             image2 = image2[None].cuda()
 
             padder = InputPadder(image1.shape)
@@ -186,8 +184,6 @@ def validate_sintel_occ(model, out_path, iters=32):
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
 
-            io.imsave(path / '{:04d}_i1.png'.format(val_id), image1.cpu())
-            io.imsave(path / '{:04d}_i2.png'.format(val_id), image2.cpu())
             io.imsave(path / '{:04d}_occgt.png'.format(val_id), occ_gt)
             io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
 
