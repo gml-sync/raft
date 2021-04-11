@@ -181,7 +181,7 @@ def validate_sintel_occ(model, out_path, iters=32):
 
             arr_info(occ_gt)
             arr_info(occ)
-            print(imag1.shape)
+            print(image1.shape)
 
             accumulator.add(occ_gt, occ)
             
