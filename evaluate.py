@@ -162,7 +162,9 @@ def validate_sintel_occ(model, out_path, iters=32):
 
         for val_id in range(len(val_dataset)):
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
+            print(image1.shape)
             image1 = image1[None].cuda()
+            print(image1.shape)
             image2 = image2[None].cuda()
 
             padder = InputPadder(image1.shape)
