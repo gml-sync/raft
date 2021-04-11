@@ -355,7 +355,7 @@ def train(args):
                 io.imsave('{}/{}_occpred.png'.format(args.output, i_batch), occpred)
                 io.imsave('{}/{}_occgt.png'.format(args.output, i_batch), occgt)
             
-            if True: # total_steps % VAL_FREQ == VAL_FREQ - 1:
+            if total_steps % VAL_FREQ == VAL_FREQ - 1:
                 logfile.log('Validation. Step', total_steps)
                 results = {}
                 for val_dataset in args.validation:
