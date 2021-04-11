@@ -161,6 +161,7 @@ def validate_sintel_occ(model, out_path, iters=32):
         epe_list = []
 
         for val_id in range(len(val_dataset)):
+            accumulator = F1Accumulator()
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
@@ -174,25 +175,30 @@ def validate_sintel_occ(model, out_path, iters=32):
             flow = padder.unpad(flow).cpu() # c h w
             occ = padder.unpad(occ).cpu()
             occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
+            # shape=(h, w) bool
             occ = occ[0].numpy()
+            # shape=(h, w) float32 in [0, 1]
 
             arr_info(occ_gt)
             arr_info(occ)
+            print(imag1.shape)
 
             accumulator.add(occ_gt, occ)
             
             path = save_dir / dstype
             path.mkdir(parents=True, exist_ok=True)
+            path_occ_gt = path / 'occ_gt'
+            path_occ_gt.mkdir(parents=True, exist_ok=True)
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
 
-            io.imsave(path / '{:04d}_occgt.png'.format(val_id), occ_gt)
-            io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
+            io.imsave(path_occ_gt / '{:04d}.png'.format(val_id), occ_gt)
+            #io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
 
             f = flow_gt.permute(1,2,0).cpu().numpy()
             flow_img = flow_viz.flow_to_image(f)
-            io.imsave(path / '{:04d}_flow_gt.png'.format(val_id), flow_img)
+            #io.imsave(path / '{:04d}_flow_gt.png'.format(val_id), flow_img)
             #io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
             io.imsave(path / '{:04d}.png'.format(val_id), occ)
             #io.imsave(occ_path / (str(val_id) + '.png'), occ)
