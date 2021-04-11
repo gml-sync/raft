@@ -184,12 +184,12 @@ def validate_sintel_occ(model, out_path, iters=32):
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
 
-            io.imsave(path / '{:04d}_i1.png'.format(val_id), image1)
-            io.imsave(path / '{:04d}_i2.png'.format(val_id), image2)
+            io.imsave(path / '{:04d}_i1.png'.format(val_id), image1.cpu())
+            io.imsave(path / '{:04d}_i2.png'.format(val_id), image2.cpu())
             io.imsave(path / '{:04d}_occgt.png'.format(val_id), occ_gt)
             io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
 
-            f = flow_gt.permute(1,2,0).numpy()
+            f = flow_gt.permute(1,2,0).cpu().numpy()
             flow_img = flow_viz.flow_to_image(f)
             io.imsave(path / '{:04d}_flow_gt.png'.format(val_id), flow_img)
             #io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
