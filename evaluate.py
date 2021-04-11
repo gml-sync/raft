@@ -86,6 +86,7 @@ def validate_chairs(model, iters=24):
     results = {}
 
     val_dataset = datasets.FlyingChairsOcc(split='validation')
+    accumulator = F1Accumulator()
     for val_id in range(len(val_dataset)):
         image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
         image1 = image1[None].cuda()
