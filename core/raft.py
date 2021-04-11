@@ -83,13 +83,13 @@ class RAFT(nn.Module):
         """ Upsample flow field [H/8, W/8, 2] -> [H, W, 2] using convex combination """
         N, _, H, W = flow.shape
         mask = mask.view(N, 1, 9, 8, 8, H, W)
-        mask = torch.softmax(mask, dim=2)
+        mask = torch.softmax(mask, dim=2) # shape=(N, 1, 9, 8, 8, H, W)
 
         up_flow = F.unfold(8 * flow, [3,3], padding=1)
         up_flow = up_flow.view(N, 2, 9, 1, 1, H, W)
 
-        up_flow = torch.sum(mask * up_flow, dim=2)
-        up_flow = up_flow.permute(0, 1, 4, 2, 5, 3)
+        up_flow = torch.sum(mask * up_flow, dim=2) # shape=(N, 2, 8, 8, H, W)
+        up_flow = up_flow.permute(0, 1, 4, 2, 5, 3) # shape=(N, 2, H, 8, W, 8) this is correct!
         return up_flow.reshape(N, 2, 8*H, 8*W)
 
 
@@ -152,12 +152,19 @@ class RAFT(nn.Module):
             # HOW DOES THIS WORK?
             if up_mask is None:
                 flow_up = upflow8(coords1 - coords0)
-                occ_up = upflow8(occ_true)
+                #occ_up = upflow8(occ_true)
             else:
                 flow_up = self.upsample_flow(coords1 - coords0, up_mask)
-                occ_up = self.upsample_flow(occ_true, up_mask_occ)
+                #occ_up = self.upsample_flow(occ_true, up_mask_occ)
 
-            occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
+
+            N, _, H, W = up_mask_occ.shape
+            occ_up = up_mask_occ.view(N, 1, 8, 8, H, W)
+            occ_up = occ_up.permute(0, 1, 4, 2, 5, 3) # shape=(N, 1, H, 8, W, 8)
+            occ_up.view(N, 1, 8*H, 8*W)
+
+
+            #occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
             occ_up = self.occ_sigmoid(occ_up)
             
             flow_predictions.append(flow_up)

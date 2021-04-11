@@ -4,6 +4,9 @@ import torch.nn.functional as F
 
 
 class FlowHead(nn.Module):
+    """
+    128 -> 256 -> 4
+    """
     def __init__(self, input_dim=128, hidden_dim=256):
         super(FlowHead, self).__init__()
         self.conv1 = nn.Conv2d(input_dim, hidden_dim, 3, padding=1)
@@ -122,7 +125,12 @@ class BasicUpdateBlock(nn.Module):
         self.mask = nn.Sequential(
             nn.Conv2d(128, 256, 3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(256, 64*9*2, 1, padding=0)) # output: [64*9 flow, 64*9 occ]
+            nn.Conv2d(256, 64*9, 1, padding=0)) # output: [64*9 flow, 64*9 occ]
+
+        self.occ_mask = nn.Sequential(
+            nn.Conv2d(128, 256, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 64, 1, padding=0)) # output: [64*9 flow, 64*9 occ]
 
     def forward(self, net, inp, corr, flow, upsample=True):
         motion_features = self.encoder(flow, corr)
@@ -136,8 +144,8 @@ class BasicUpdateBlock(nn.Module):
 
         # scale mask to balence gradients
         mask = .25 * self.mask(net)
-        mask_flow = mask[:, :64*9]
-        mask_occ = mask[:, 64*9:]
+        mask_flow = mask
+        mask_occ = .25 * self.occ_mask(net)
         return net, mask_flow, mask_occ, delta_flow, delta_occ
 
 
