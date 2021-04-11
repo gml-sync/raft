@@ -355,22 +355,22 @@ def train(args):
                 io.imsave('{}/{}_occpred.png'.format(args.output, i_batch), occpred)
                 io.imsave('{}/{}_occgt.png'.format(args.output, i_batch), occgt)
             
-            # if total_steps % VAL_FREQ == VAL_FREQ - 1:
-            #     logfile.log('Validation. Step', total_steps)
-            #     results = {}
-            #     for val_dataset in args.validation:
-            #         if val_dataset == 'chairs':
-            #             results.update(evaluate.validate_chairs(model.module))
-            #         elif val_dataset == 'sintel':
-            #             results.update(evaluate.validate_sintel(model.module))
-            #         elif val_dataset == 'kitti':
-            #             results.update(evaluate.validate_kitti(model.module))
+            if True: # total_steps % VAL_FREQ == VAL_FREQ - 1:
+                logfile.log('Validation. Step', total_steps)
+                results = {}
+                for val_dataset in args.validation:
+                    if val_dataset == 'chairs':
+                        results.update(evaluate.validate_chairs(model.module))
+                    elif val_dataset == 'sintel':
+                        results.update(evaluate.validate_sintel_occ(model.module))
+                    elif val_dataset == 'kitti': # never used
+                        results.update(evaluate.validate_kitti(model.module))
 
-            #     logger.write_dict(results)
+                logger.write_dict(results)
                 
-            #     model.train()
-            #     if args.stage != 'chairs':
-            #         model.module.freeze_bn()
+                model.train()
+                if args.stage != 'chairs':
+                    model.module.freeze_bn()
             
             total_steps += 1
 

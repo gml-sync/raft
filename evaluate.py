@@ -83,20 +83,55 @@ def validate_chairs(model, iters=24):
     """ Perform evaluation on the FlyingChairs (test) split """
     model.eval()
     epe_list = []
+    results = {}
 
     val_dataset = datasets.FlyingChairs(split='validation')
     for val_id in range(len(val_dataset)):
-        image1, image2, flow_gt, _ = val_dataset[val_id]
+        image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
         image1 = image1[None].cuda()
         image2 = image2[None].cuda()
 
-        _, flow_pr = model(image1, image2, iters=iters, test_mode=True)
-        epe = torch.sum((flow_pr[0].cpu() - flow_gt)**2, dim=0).sqrt()
-        epe_list.append(epe.view(-1).numpy())
+        padder = InputPadder(image1.shape)
+        image1, image2 = padder.pad(image1, image2)
+
+        flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
+        flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
+        occ = occ_seq[-1][0]
+        flow = padder.unpad(flow).cpu() # c h w
+        occ = padder.unpad(occ).cpu()
+        occ_gt = occ_gt[0].numpy() > 0.5 # c h w -> h w, float -> bool
+        # shape=(h, w) bool
+        occ = occ[0].numpy()
+        # shape=(h, w) float32 in [0, 1]
+
+        accumulator.add(occ_gt, occ)
+        
+        epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
+        np_epe = epe.view(-1).numpy()
+        epe_list.append(np_epe)
+        #logfile.log(val_id, 'mean epe', np.mean(np_epe))
 
     epe = np.mean(np.concatenate(epe_list))
+    results['chairs'] = epe
     logfile.log("Validation Chairs EPE: %f" % epe)
-    return {'chairs': epe}
+
+    # Max f-score and figure drawing
+    precision, recall, thresholds = accumulator.get_result()
+    
+    max_f1 = 0
+    pr = rc = th = 0
+    for i, j in zip(range(len(precision)), thresholds):
+        f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+        if f1 > max_f1:
+            max_f1 = f1
+            pr = precision[i]
+            rc = recall[i]
+            th = j
+
+    logfile.log(max_f1, pr, rc, th)
+    results['chairs_occ'] = max_f1
+
+    return results
 
 @torch.no_grad()
 def validate_sintel(model, out_path, iters=32):
@@ -147,6 +182,8 @@ def validate_sintel(model, out_path, iters=32):
         print("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
         results[dstype] = np.mean(epe_list)
 
+
+
     return results
 
 @torch.no_grad()
@@ -159,9 +196,7 @@ def validate_sintel_occ(model, out_path, iters=32):
         accumulator = F1Accumulator()
         val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
-
         for val_id in range(len(val_dataset)):
-            accumulator = F1Accumulator()
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
@@ -179,36 +214,27 @@ def validate_sintel_occ(model, out_path, iters=32):
             occ = occ[0].numpy()
             # shape=(h, w) float32 in [0, 1]
 
-            arr_info(occ_gt)
-            arr_info(occ)
-            print(image1.shape)
-
             accumulator.add(occ_gt, occ)
             
             path = save_dir / dstype
             path.mkdir(parents=True, exist_ok=True)
             path_occ_gt = path / 'occ_gt'
             path_occ_gt.mkdir(parents=True, exist_ok=True)
+            #io.imsave(path_occ_gt / '{:04d}.png'.format(val_id), occ_gt)
+            #io.imsave(path / '{:04d}.png'.format(val_id), occ)
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
-
-            io.imsave(path_occ_gt / '{:04d}.png'.format(val_id), occ_gt)
             #io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
 
             f = flow_gt.permute(1,2,0).cpu().numpy()
             flow_img = flow_viz.flow_to_image(f)
             #io.imsave(path / '{:04d}_flow_gt.png'.format(val_id), flow_img)
-            #io.imsave(path / '{:04d}_flow.jpg'.format(val_id), flow_img)
-            io.imsave(path / '{:04d}.png'.format(val_id), occ)
-            #io.imsave(occ_path / (str(val_id) + '.png'), occ)
-            #io.imsave(occ_path / (str(val_id) + '_optimum.png'), occ > 0.36)
-            #io.imsave(occ_path / (str(val_id) + '_gt.png'), occ_gt)
             
             epe = torch.sum((flow - flow_gt)**2, dim=0).sqrt()
             np_epe = epe.view(-1).numpy()
             epe_list.append(np_epe)
-            logfile.log(val_id, 'mean epe', np.mean(np_epe))
+            #logfile.log(val_id, 'mean epe', np.mean(np_epe))
             
             
 
@@ -221,9 +247,9 @@ def validate_sintel_occ(model, out_path, iters=32):
         logfile.log("Validation (%s) EPE: %f, 1px: %f, 3px: %f, 5px: %f" % (dstype, epe, px1, px3, px5))
         results[dstype] = np.mean(epe_list)
 
+        # Max f-score and figure drawing
         precision, recall, thresholds = accumulator.get_result()
 
-        # Max f-score and figure drawing
         max_f1 = 0
         pr = rc = th = 0
         for i, j in zip(range(len(precision)), thresholds):
@@ -235,6 +261,7 @@ def validate_sintel_occ(model, out_path, iters=32):
                 th = j
 
         logfile.log(max_f1, pr, rc, th)
+        results[dstype + '_occ'] = max_f1
 
         plt.scatter(rc, pr, s=100)
         plt.step(recall, precision, label='RAFT Fscore={0:0.4f}'.format(max_f1), linewidth=2)
