@@ -161,7 +161,7 @@ class RAFT(nn.Module):
             N, _, H, W = up_mask_occ.shape
             occ_up = up_mask_occ.view(N, 1, 8, 8, H, W)
             occ_up = occ_up.permute(0, 1, 4, 2, 5, 3) # shape=(N, 1, H, 8, W, 8)
-            occ_up.view(N, 1, 8*H, 8*W)
+            occ_up = occ_up.reshape(N, 1, 8*H, 8*W)
 
 
             #occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
