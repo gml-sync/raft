@@ -198,6 +198,7 @@ def validate_sintel_occ(model, out_path="", iters=32):
         val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
         for val_id in range(len(val_dataset)):
+            logfile.log(val_id)
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
