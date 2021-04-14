@@ -362,7 +362,7 @@ def train(args):
                     if val_dataset == 'chairs':
                         results.update(evaluate.validate_chairs(model.module))
                     elif val_dataset == 'sintel':
-                        results.update(evaluate.validate_sintel_occ(model.module))
+                        results.update(evaluate.validate_sintel_occ(model.module, args.output))
                     elif val_dataset == 'kitti': # never used
                         results.update(evaluate.validate_kitti(model.module))
 
