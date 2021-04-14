@@ -285,7 +285,7 @@ def train(args):
         logger.writer.add_text('key', 'value')
         exit(0)
     
-    VAL_FREQ = 5000
+    VAL_FREQ = 15000
     STEPS = 3000
 
     session_steps = 0
