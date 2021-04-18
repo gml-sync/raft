@@ -222,11 +222,11 @@ def validate_sintel_occ(model, out_path, iters=32):
             path_occ_gt = path / 'occ_gt'
             path_occ_gt.mkdir(parents=True, exist_ok=True)
             #io.imsave(path_occ_gt / '{:04d}.png'.format(val_id), occ_gt)
-            #io.imsave(path / '{:04d}.png'.format(val_id), occ)
+            io.imsave(path / '{:04d}.png'.format(val_id), occ)
             
             f = flow.permute(1,2,0).numpy()
             flow_img = flow_viz.flow_to_image(f)
-            #io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
+            io.imsave(path / '{:04d}_flow.png'.format(val_id), flow_img)
 
             f = flow_gt.permute(1,2,0).cpu().numpy()
             flow_img = flow_viz.flow_to_image(f)
