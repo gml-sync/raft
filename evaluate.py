@@ -189,7 +189,7 @@ def validate_sintel(model, out_path, iters=32):
     return results
 
 @torch.no_grad()
-def validate_sintel_occ(model, out_path, iters=16):
+def validate_sintel_occ(model, out_path, iters=32):
     """ Peform validation using the Sintel (train) split """
     save_dir = Path('{}/sintel_val'.format(out_path)).resolve()
     model.eval()
