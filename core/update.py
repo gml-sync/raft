@@ -143,9 +143,13 @@ class BasicUpdateBlock(nn.Module):
         
 
         # scale mask to balence gradients
-        mask = .25 * self.mask(net)
-        mask_flow = mask
-        mask_occ = .25 * self.occ_mask(net)
+        if upsample:
+            mask = .25 * self.mask(net)
+            mask_flow = mask
+            mask_occ = .25 * self.occ_mask(net)
+        else:
+            mask_flow = None
+            mask_occ = None
         return net, mask_flow, mask_occ, delta_flow, delta_occ
 
 
