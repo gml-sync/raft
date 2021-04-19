@@ -17,6 +17,7 @@ from utils import frame_utils
 from raft import RAFT
 from utils.utils import InputPadder, forward_interpolate
 
+from time import time
 from utils.f1fast_test import F1Accumulator
 from utils.logfile import logfile
 from pathlib import Path
@@ -205,7 +206,9 @@ def validate_sintel_occ(model, out_path, iters=32):
             padder = InputPadder(image1.shape)
             image1, image2 = padder.pad(image1, image2)
 
+            t = time()
             flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
+            logfile.log('Elapsed:', time() - t)
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
             occ = occ_seq[-1][0]
             flow = padder.unpad(flow).cpu() # c h w
