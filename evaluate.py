@@ -241,7 +241,7 @@ def validate_sintel_occ(model, out_path, iters=16):
             epe_list.append(np_epe)
             #logfile.log(val_id, 'mean epe', np.mean(np_epe))
 
-            print(accumulator.get_max())
+            logfile.log(accumulator.get_max())
             
             
 
