@@ -135,6 +135,21 @@ class F1Accumulator:
     def get_result(self):
         return precision_recall_raw(self.true_positive_sum, self.selected_elements_sum, self.relevant_elements_sum)
 
+    def get_max(self):
+        precision, recall, thresholds = self.get_result()
+
+        max_f1 = 0
+        pr = rc = th = 0
+        for i, j in zip(range(len(precision)), thresholds):
+            f1 = 2 * (precision[i] * recall[i]) / (precision[i] + recall[i])
+            if f1 > max_f1:
+                max_f1 = f1
+                pr = precision[i]
+                rc = recall[i]
+                th = j
+
+        return max_f1, pr, rc, th
+
 if __name__ == '__main__':
     #img_rows = 218
     #img_cols = 512
