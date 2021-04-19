@@ -142,7 +142,7 @@ class RAFT(nn.Module):
             with autocast(enabled=self.args.mixed_precision):
                 flow_occ = torch.cat([flow, occ_true], dim=1)
                 net, up_mask, up_mask_occ, delta_flow, delta_occ = \
-                    self.update_block(net, inp, corr, flow_occ, upsample=False)
+                    self.update_block(net, inp, corr, flow_occ, upsample=(itr==iters-1))
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
