@@ -195,11 +195,11 @@ def validate_sintel_occ(model, out_path, iters=32):
     model.eval()
     results = {}
     for dstype in ['clean', 'final']:
-        #accumulator = F1Accumulator()
+        accumulator = F1Accumulator()
         val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype)
         epe_list = []
         for val_id in range(len(val_dataset)):
-            accumulator = F1Accumulator()
+            #accumulator = F1Accumulator()
             image1, image2, flow_gt, occ_gt, _, _ = val_dataset[val_id]
             image1 = image1[None].cuda()
             image2 = image2[None].cuda()
@@ -209,7 +209,7 @@ def validate_sintel_occ(model, out_path, iters=32):
 
             t = time()
             flow_seq, occ_seq = model(image1, image2, iters=iters, test_mode=True) # b c h w
-            logfile.log('Elapsed:', time() - t)
+            #logfile.log('Elapsed:', time() - t)
             flow = flow_seq[-1][0] # last prediction in sequence + first item in batch
             occ = occ_seq[-1][0]
             flow = padder.unpad(flow).cpu() # c h w
@@ -241,7 +241,7 @@ def validate_sintel_occ(model, out_path, iters=32):
             epe_list.append(np_epe)
             #logfile.log(val_id, 'mean epe', np.mean(np_epe))
 
-            logfile.log(accumulator.get_max())
+            #logfile.log(accumulator.get_max())
             
             
 
