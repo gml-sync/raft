@@ -136,13 +136,14 @@ class RAFT(nn.Module):
         for itr in range(iters):
             coords1 = coords1.detach()
             corr = corr_fn(coords1) # index correlation volume
+            upsample_res = (not test_mode or itr==iters-1)
 
             flow = coords1 - coords0
             # print('flow shape', coords0.shape, 'dtype', coords0.dtype)
             with autocast(enabled=self.args.mixed_precision):
                 flow_occ = torch.cat([flow, occ_true], dim=1)
                 net, up_mask, up_mask_occ, delta_flow, delta_occ = \
-                    self.update_block(net, inp, corr, flow_occ, upsample=(itr==iters-1))
+                    self.update_block(net, inp, corr, flow_occ, upsample=upsample_res)
 
             # F(t+1) = F(t) + \Delta(t)
             coords1 = coords1 + delta_flow
@@ -150,7 +151,7 @@ class RAFT(nn.Module):
 
             # upsample predictions
             # HOW DOES THIS WORK?
-            if itr == iters - 1:
+            if upsample_res:
                 if up_mask is None:
                     flow_up = upflow8(coords1 - coords0)
                     #occ_up = upflow8(occ_true)
@@ -158,7 +159,7 @@ class RAFT(nn.Module):
                     flow_up = self.upsample_flow(coords1 - coords0, up_mask)
                     #occ_up = self.upsample_flow(occ_true, up_mask_occ)
 
-            if itr == iters - 1:
+            if upsample_res:
                 N, _, H, W = up_mask_occ.shape
                 occ_up = up_mask_occ.view(N, 1, 8, 8, H, W)
                 occ_up = occ_up.permute(0, 1, 4, 2, 5, 3) # shape=(N, 1, H, 8, W, 8)
@@ -168,7 +169,7 @@ class RAFT(nn.Module):
                 #occ_up = occ_up[:, 0:1] # second layer goes to trash. Try softmax next time. Then logsoftmax
                 occ_up = self.occ_sigmoid(occ_up)
             
-            if itr == iters - 1:
+            if upsample_res:
                 flow_predictions.append(flow_up)
                 occ_predictions.append(occ_up)
 
