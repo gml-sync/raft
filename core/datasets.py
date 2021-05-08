@@ -130,6 +130,19 @@ class FlowDataset(data.Dataset):
     def __len__(self):
         return len(self.image_list)
         
+VALIDATE_INDICES = [
+    199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210,
+    211, 212, 213, 214, 215, 216, 217, 340, 341, 342, 343, 344,
+    345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356,
+    357, 358, 359, 360, 361, 362, 363, 364, 536, 537, 538, 539,
+    540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551,
+    552, 553, 554, 555, 556, 557, 558, 559, 560, 659, 660, 661,
+    662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673,
+    674, 675, 676, 677, 678, 679, 680, 681, 682, 683, 684, 685,
+    686, 687, 688, 689, 690, 691, 692, 693, 694, 695, 696, 697,
+    967, 968, 969, 970, 971, 972, 973, 974, 975, 976, 977, 978,
+    979, 980, 981, 982, 983, 984, 985, 986, 987, 988, 989, 990,
+    991]
 
 class MpiSintel(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/Sintel', dstype='clean'):
@@ -168,6 +181,15 @@ class MpiSintelOcc(FlowDataset):
             if split != 'test':
                 self.flow_list += sorted(glob(osp.join(flow_root, scene, '*.flo')))
                 self.occ_list += sorted(glob(osp.join(occ_root, scene, '*.png')))
+
+        if split != 'test':
+            train_ind = [idx for idx in len(self.image_list) if not idx in VALIDATE_INDICES]
+            self.image_list = [self.image_list[i] for i in train_ind]
+            self.extra_info = [self.extra_info[i] for i in train_ind]
+            self.flow_list = [self.flow_list[i] for i in train_ind]
+            self.occ_list = [self.occ_list[i] for i in train_ind]
+
+
 
 class FlyingChairs(FlowDataset):
     def __init__(self, aug_params=None, split='training', root='datasets/FlyingChairs_release/data'):
