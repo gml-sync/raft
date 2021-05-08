@@ -183,7 +183,7 @@ class MpiSintelOcc(FlowDataset):
                 self.occ_list += sorted(glob(osp.join(occ_root, scene, '*.png')))
 
         if split != 'test':
-            train_ind = [idx for idx in len(self.image_list) if not idx in VALIDATE_INDICES]
+            train_ind = [idx for idx in range(len(self.image_list)) if not idx in VALIDATE_INDICES]
             self.image_list = [self.image_list[i] for i in train_ind]
             self.extra_info = [self.extra_info[i] for i in train_ind]
             self.flow_list = [self.flow_list[i] for i in train_ind]
