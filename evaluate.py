@@ -196,7 +196,7 @@ def validate_sintel_occ(model, out_path, iters=32):
     results = {}
     for dstype in ['clean', 'final']:
         accumulator = F1Accumulator()
-        val_dataset = datasets.MpiSintelOcc(split='validation', dstype=dstype)
+        val_dataset = datasets.MpiSintelOcc(split='training', dstype=dstype, mode='validation')
         epe_list = []
         for val_id in range(len(val_dataset)):
             #accumulator = F1Accumulator()

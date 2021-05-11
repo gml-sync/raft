@@ -163,7 +163,7 @@ class MpiSintel(FlowDataset):
                 self.flow_list += sorted(glob(osp.join(flow_root, scene, '*.flo')))
 
 class MpiSintelOcc(FlowDataset):
-    def __init__(self, aug_params=None, split='training', root='datasets/Sintel', dstype='clean'):
+    def __init__(self, aug_params=None, split='training', root='datasets/Sintel', dstype='clean', mode='training'):
         super(MpiSintelOcc, self).__init__(aug_params)
         flow_root = osp.join(root, split, 'flow')
         occ_root = osp.join(root, split, 'occlusions')
@@ -182,7 +182,7 @@ class MpiSintelOcc(FlowDataset):
                 self.flow_list += sorted(glob(osp.join(flow_root, scene, '*.flo')))
                 self.occ_list += sorted(glob(osp.join(occ_root, scene, '*.png')))
 
-        if split == 'training':
+        if split != 'test' and mode == 'training':
             train_ind = [idx for idx in range(len(self.image_list)) if not idx in VALIDATE_INDICES]
             self.image_list = [self.image_list[i] for i in train_ind]
             self.extra_info = [self.extra_info[i] for i in train_ind]
